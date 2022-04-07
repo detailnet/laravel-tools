@@ -11,7 +11,7 @@
     <arg value="nps"/>
 
     <!-- Paths to check -->
-    <file>stc</file>
+    <file>src</file>
     <file>test</file>
 
     <rule ref="Generic.Formatting.SpaceAfterNot">
