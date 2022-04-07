@@ -223,7 +223,7 @@ abstract class RestController extends Controller
 
             $validator = $model::updateValidator(
                 $params,
-                $this->$this->updateValidatorOptions()
+                $this->updateValidatorOptions($model)
             );
 
             if ($validator->fails()) {
@@ -315,7 +315,7 @@ abstract class RestController extends Controller
         return [$id];
     }
 
-    protected function updateValidatorOptions(): array
+    protected function updateValidatorOptions(?Model $model = null): array
     {
         return [];
     }
