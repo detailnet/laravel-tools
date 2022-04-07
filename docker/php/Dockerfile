@@ -15,7 +15,7 @@ RUN . /usr/local/bin/install-php-zip-extension.sh
 RUN . /usr/local/bin/install-php-intl-extension.sh
 RUN . /usr/local/bin/install-php-pcntl-extension.sh
 RUN . /usr/local/bin/install-php-xdebug-extension.sh
-#RUN . /usr/local/bin/install-php-mongodb-extension.sh
+RUN . /usr/local/bin/install-php-mongodb-extension.sh
 #RUN . /usr/local/bin/install-php-redis-extension.sh
 RUN . /usr/local/bin/install-composer.sh
 
