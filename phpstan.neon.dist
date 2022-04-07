@@ -9,20 +9,11 @@ parameters:
   paths:
     - src
 
-  stubFiles:
-    - .phpstan/stubs/Jenssegers/Mongodb/Eloquent/Builder.php
-    - .phpstan/stubs/Jenssegers/Mongodb/Relations/BelongsTo.php
-    - .phpstan/stubs/Jenssegers/Mongodb/Relations/BelongsToMany.php
-    - .phpstan/stubs/Jenssegers/Mongodb/Relations/EmbedsMany.php
-    - .phpstan/stubs/Jenssegers/Mongodb/Relations/EmbedsOne.php
-    - .phpstan/stubs/Jenssegers/Mongodb/Relations/EmbedsOneOrMany.php
-    - .phpstan/stubs/Jenssegers/Mongodb/Relations/HasMany.php
-    - .phpstan/stubs/Jenssegers/Mongodb/Relations/HasOne.php
-
   checkGenericClassInNonGenericObjectType: false
   checkMissingIterableValueType: false
   treatPhpDocTypesAsCertain: false
 
 includes:
+  - phpstan/extension.neon
   - vendor/phpstan/phpstan/conf/bleedingEdge.neon
   - vendor/nunomaduro/larastan/extension.neon

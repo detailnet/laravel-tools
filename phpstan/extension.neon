@@ -1,0 +1,11 @@
+parameters:
+
+  stubFiles:
+    - stubs/Jenssegers/Mongodb/Eloquent/Builder.php
+    - stubs/Jenssegers/Mongodb/Relations/BelongsTo.php
+    - stubs/Jenssegers/Mongodb/Relations/BelongsToMany.php
+    - stubs/Jenssegers/Mongodb/Relations/EmbedsMany.php
+    - stubs/Jenssegers/Mongodb/Relations/EmbedsOne.php
+    - stubs/Jenssegers/Mongodb/Relations/EmbedsOneOrMany.php
+    - stubs/Jenssegers/Mongodb/Relations/HasMany.php
+    - stubs/Jenssegers/Mongodb/Relations/HasOne.php

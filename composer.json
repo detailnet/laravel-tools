@@ -29,12 +29,7 @@
         "ext-intl": "*",
         "ext-json": "*",
         "goldspecdigital/laravel-eloquent-uuid": "^8.0",
-        "laravel/framework": "^v8",
-        "nunomaduro/collision": "^5",
-        "nunomaduro/larastan": "^1",
-        "orchestra/testbench": "^6",
-        "phpstan/phpstan": "^1.5",
-        "phpstan/phpstan-strict-rules": "^1.1"
+        "laravel/framework": "^v8"
     },
     "require-dev": {
         "ext-mongodb": "^1.11",
@@ -43,6 +38,11 @@
         "guzzlehttp/guzzle": "^7.0.1",
         "jenssegers/mongodb": "^3.8",
         "league/flysystem-aws-s3-v3": "^1.0",
+        "nunomaduro/collision": "^5",
+        "nunomaduro/larastan": "^1",
+        "orchestra/testbench": "^6",
+        "phpstan/phpstan": "^1.5",
+        "phpstan/phpstan-strict-rules": "^1.1",
         "phpspec/prophecy-phpunit": "^2.0",
         "phpunit/phpunit": "^9.5",
         "roave/security-advisories": "dev-master",
