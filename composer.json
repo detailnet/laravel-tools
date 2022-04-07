@@ -1,0 +1,88 @@
+{
+    "name": "detailnet/laravel-tools",
+    "description": "DETAIL library for Laravel applications",
+    "type": "library",
+    "keywords": [
+        "detail",
+        "detailnet",
+        "laravel"
+    ],
+    "homepage": "https://github.com/detailnet/laravel-tools/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Curzio Della Santa",
+            "email": "curzio.della.santa@detailnet.ch"
+        },
+        {
+            "name": "Wing Lung Choong",
+            "email": "wing.lung.choong@detailnet.ch"
+        }
+    ],
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "require": {
+        "php": "^8.0",
+        "ext-intl": "*",
+        "ext-json": "*",
+        "goldspecdigital/laravel-eloquent-uuid": "^8.0",
+        "laravel/framework": "^v8",
+        "nunomaduro/collision": "^5",
+        "nunomaduro/larastan": "^1",
+        "orchestra/testbench": "^6",
+        "phpstan/phpstan": "^1.5",
+        "phpstan/phpstan-strict-rules": "^1.1"
+    },
+    "require-dev": {
+        "ext-mongodb": "^1.11",
+        "aws/aws-sdk-php": "^3.174",
+        "defuse/php-encryption": "^2.3",
+        "guzzlehttp/guzzle": "^7.0.1",
+        "jenssegers/mongodb": "^3.8",
+        "league/flysystem-aws-s3-v3": "^1.0",
+        "phpspec/prophecy-phpunit": "^2.0",
+        "phpunit/phpunit": "^9.5",
+        "roave/security-advisories": "dev-master",
+        "squizlabs/php_codesniffer": "^3.5"
+    },
+    "suggest": {
+        "ext-mongodb": "Required to use Detail\\Laravel\\Models\\Model.",
+        "jenssegers/mongodb": "Required to use Detail\\Laravel\\Models\\Model.",
+        "aws/aws-sdk-php": "Required to use Detail\\Laravel\\Drive.",
+        "league/flysystem-aws-s3-v3": "Required to use Detail\\Laravel\\Drive.",
+        "defuse/php-encryption": "Required to use Detail\\Laravel\\Drive.",
+        "guzzlehttp/guzzle": "Required to use Detail\\Laravel\\Cdn\\Imgix."
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Detail\\Laravel\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DetailTest\\Laravel\\": "test/"
+        }
+    },
+    "scripts": {
+        "check": [
+            "@cs-check",
+            "@stan-check",
+            "@test"
+        ],
+        "cs-check": "phpcs -s",
+        "cs-fix": "phpcbf",
+        "stan-check": "phpstan analyse",
+        "stan-check-ci": "phpstan analyse --no-progress",
+        "test": "phpunit --colors=always",
+        "test-debug": "php -dxdebug.start_with_request=yes vendor/phpunit/phpunit/phpunit --colors=always",
+        "test-coverage": "phpunit --coverage-html build/coverage"
+    }
+}

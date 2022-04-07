@@ -1,0 +1,53 @@
+name: laravel-tools
+
+#env_file:
+# - .env # To define the COMPOSER_AUTH variable to access GitHub private repos
+
+services:
+  appserver:
+    type: php:8.0
+    via: cli
+    composer_version: 2-latest
+    xdebug: "debug,develop" # Or just 1, because we are overwriting the value in our custom php.ini
+    config:
+      php: ./docker/php/lando.php.ini
+    build_as_root:
+      - ./docker/php/install-php-mongodb-extension.sh
+    run:
+      - composer install
+    overrides:
+      volumes:
+        - ${HOME}/.lando/composer_cache:/var/www/.composer/cache
+      environment:
+        PHP_IDE_CONFIG: "serverName=detail-mam-api.detailnet.me" # include a PHP_IDE_CONFIG for PhpStorm
+      #    COMPOSER_AUTH: |
+      #      {"github-oauth": {"github.com": "<your token>"}}
+
+tooling:
+  xon:
+    service: appserver
+    description: Enable xdebug.
+    #cmd: "docker-php-ext-enable xdebug && /etc/init.d/apache2 reload"
+    cmd: "docker-php-ext-enable xdebug"
+    user: root
+  xoff:
+    service: appserver
+    description: Disable xdebug.
+    #cmd: "rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && /etc/init.d/apache2 reload"
+    cmd: "rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini"
+    user: root
+  composer:
+    service: appserver
+    description: Run composer commands
+    cmd: composer -v --ansi
+  #    cmd:
+  #      - php -dmemory_limit=-1 /usr/local/bin/composer
+  test:
+    description: Run all tests
+    cmd:
+      - appserver: composer test
+  php:
+    service: appserver
+  phpunit:
+    service: appserver
+    cmd: /app/vendor/bin/phpunit

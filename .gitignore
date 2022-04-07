@@ -1,0 +1,8 @@
+.phpcs-cache
+.phpunit.result.cache
+vendor
+composer.lock
+composer.phar
+phpstan.neon
+phpunit.xml
+xdebug.log

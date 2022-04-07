@@ -1,0 +1,55 @@
+name: Tests
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    paths-ignore:
+      - build/**
+      - .gitattributes
+      - .gitignore
+      - docker-compose.yml
+      - LICENSE
+      - README.md
+  push:
+    branches:
+      - 'main'
+    paths-ignore:
+      - build/**
+      - .gitattributes
+      - .gitignore
+      - docker-compose.yml
+      - LICENSE
+      - README.md
+jobs:
+  test:
+    name: Test on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php:
+          - "8.0"
+          - "8.1"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build container
+        run: docker-compose build --build-arg PHP_VERSION=${{ matrix.php }} php
+      - name: Install Composer dependencies
+        run: docker-compose run php update --prefer-dist --no-interaction --no-progress
+      - name: Run PHPUnit
+        run: docker-compose run php test
+  code-check:
+    name: Check coding standard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build container
+        run: docker-compose build --build-arg PHP_VERSION="8.0" php
+      - name: Install Composer dependencies
+        run: docker-compose run php update --prefer-dist --no-interaction --no-progress
+      - name: Run PHP_CodeSniffer
+        run: docker-compose run php cs-check
+      - name: Run PHPStan
+        run: docker-compose run php stan-check-ci

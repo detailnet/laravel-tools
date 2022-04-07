@@ -1,0 +1,20 @@
+version: '3.6'
+services:
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+      args:
+        PHP_VERSION: 7.4
+    image: laravel-tools/php
+    container_name: laravel-tools_php
+    networks:
+      - laravel-tools
+    volumes:
+      - .:/app
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+networks:
+  laravel-tools:
+    name: laravel-tools
