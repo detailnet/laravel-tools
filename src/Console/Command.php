@@ -1,6 +1,6 @@
 <?php
 
-namespace Detail\Laravel\Console\Commands;
+namespace Detail\Laravel\Console;
 
 use DateTime;
 use Illuminate\Console\Command as BaseCommand;

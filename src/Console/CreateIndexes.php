@@ -1,6 +1,6 @@
 <?php
 
-namespace Detail\Laravel\Console\Commands;
+namespace Detail\Laravel\Console;
 
 use Detail\Laravel\Models\Model;
 use Illuminate\Support\Facades\DB;
