@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Detail\Laravel\Models;
 
 use Detail\Laravel\Http\RestController;
 use Illuminate\Database\Eloquent\Builder;
