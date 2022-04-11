@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Collection;
  * @ref https://github.com/nunomaduro/larastan/blob/19866e06d5846f8c17460ce1c1808da8166d3747/UPGRADE.md#upgrading-to-056
  *
  * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
- * @template TValue
+ * @template TKey of array-key
+ * @template TModel of \Illuminate\Database\Eloquent\Model
  * @extends EmbedsOneOrMany<TRelatedModel>
  */
 class EmbedsMany extends EmbedsOneOrMany
@@ -41,7 +42,7 @@ class EmbedsMany extends EmbedsOneOrMany
 
     /**
      * @param TRelatedModel[] $models
-     * @param \Illuminate\Database\Eloquent\Collection<TValue> $results
+     * @param \Illuminate\Database\Eloquent\Collection<TKey, TModel> $results
      * @param string $relation
      *
      * @return TRelatedModel[]

@@ -22,34 +22,97 @@ on:
       - LICENSE
       - README.md
 jobs:
-  test:
-    name: Test on PHP ${{ matrix.php }}
+  code-check:
+    name: Check coding standard
     runs-on: ubuntu-latest
     strategy:
       matrix:
         php:
-          - "8.0"
-          - "8.1"
+          - '8.0'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build container
-        run: docker-compose build --build-arg PHP_VERSION=${{ matrix.php }} php
-      - name: Install Composer dependencies
-        run: docker-compose run php update --prefer-dist --no-interaction --no-progress
-      - name: Run PHPUnit
-        run: docker-compose run php test
-  code-check:
-    name: Check coding standard
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Build container
-        run: docker-compose build --build-arg PHP_VERSION="8.0" php
-      - name: Install Composer dependencies
-        run: docker-compose run php update --prefer-dist --no-interaction --no-progress
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl,mbstring,xdebug
+          tools: composer
+          coverage: xdebug
+      - name: Show PHP version
+        run: php -v && composer -V
+      - name: Show Docker version
+        run: if [[ "$DEBUG" == "true" ]]; then docker version && env; fi
+        env:
+          DEBUG: ${{secrets.DEBUG}}
+      - name: Download Composer cache dependencies from cache
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache Composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ matrix.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ matrix.os }}-composer-
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction
       - name: Run PHP_CodeSniffer
-        run: docker-compose run php cs-check
+        run: |
+          composer cs-check
       - name: Run PHPStan
-        run: docker-compose run php stan-check-ci
+        run: |
+          composer stan-check-ci
+  test:
+    name: Test on PHP v${{ matrix.php }} with Mongo v${{ matrix.mongodb }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, php: '8.0', mongodb: '4.0', experimental: false }
+          - { os: ubuntu-latest, php: '8.0', mongodb: '4.2', experimental: false }
+          - { os: ubuntu-latest, php: '8.0', mongodb: '4.4', experimental: false }
+          - { os: ubuntu-latest, php: '8.0', mongodb: '5.0', experimental: false }
+          - { os: ubuntu-latest, php: '8.1', mongodb: '4.0', experimental: false }
+          - { os: ubuntu-latest, php: '8.1', mongodb: '4.2', experimental: false }
+          - { os: ubuntu-latest, php: '8.1', mongodb: '4.4', experimental: false }
+          - { os: ubuntu-latest, php: '8.1', mongodb: '5.0', experimental: false }
+    services:
+      mongo:
+        image: mongo:${{ matrix.mongodb }}
+        ports:
+          - 27017:27017
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl,mbstring,xdebug
+          coverage: xdebug
+          tools: composer
+      - name: Show PHP version
+        run: php -v && composer -V
+      - name: Show Docker version
+        run: if [[ "$DEBUG" == "true" ]]; then docker version && env; fi
+        env:
+          DEBUG: ${{secrets.DEBUG}}
+      - name: Download Composer cache dependencies from cache
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache Composer dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ matrix.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ matrix.os }}-composer-
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction
+      - name: Run tests
+        env:
+          MONGO_HOST: 0.0.0.0
+        run: |
+          composer test

@@ -6,18 +6,16 @@ use DateTimeInterface;
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
 use Illuminate\Contracts\Filesystem\Filesystem as IlluminateFilesystem;
-use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Support\Facades\Storage;
-use League\Flysystem\AdapterInterface;
-use League\Flysystem\AwsS3v3\AwsS3Adapter;
-use League\Flysystem\Filesystem;
-use League\Flysystem\FilesystemInterface;
+use League\Flysystem\FileAttributes;
 use RuntimeException;
 use function array_merge;
 use function env;
 use function get_class;
 use function sprintf;
 use function strtoupper;
+use function trim;
 
 class Drive
 {
@@ -68,34 +66,50 @@ class Drive
         return $this->processorKey;
     }
 
-    public function getMetadata(string $path): array
+    public function getAttributes(string $path): FileAttributes
     {
-        return $this->getFilesystem()?->getMetadata($path) ?: [];
-    }
+        $adapter = $this->storage->getAdapter();
 
-    private function getFilesystem(): ?FilesystemInterface
-    {
-        if (!$this->storage instanceof FilesystemAdapter
-            || !$this->storage->getDriver() instanceof FilesystemInterface
-        ) {
-            return null;
+        if ($adapter instanceof AwsS3V3Adapter) {
+            return $adapter->getAdapter()->fileSize($path); // Could use any other return ing FileAttributes
         }
 
-        return $this->storage->getDriver();
+        throw new RuntimeException(
+            sprintf(
+                'Unsupported filesystem adapter "%s" on "%s"',
+                get_class($adapter),
+                __FUNCTION__
+            )
+        );
+    }
+
+    public function extractHash(FileAttributes $attributes): string
+    {
+        return trim($attributes->extraMetadata()['etag'] ?? '', '"');
+    }
+
+    /**
+     * @deprecated Use getFileAttributes instead.
+     */
+    public function getMetadata(string $path): array
+    {
+        $attributes = $this->getAttributes($path);
+
+        return [
+            'mimetype' => $attributes->mimeType(),
+            'size' => $attributes->fileSize(),
+            'etag' => $this->extractHash($attributes),
+        ];
     }
 
     public function getUrl(string $path): string
     {
-        /** @var Filesystem $filesystem */
-        $filesystem = $this->getFilesystem();
+        $adapter = $this->storage->getAdapter();
 
-        /** @var AdapterInterface $adapter */
-        $adapter = $filesystem->getAdapter();
-
-        if ($adapter instanceof AwsS3Adapter) {
+        if ($adapter instanceof AwsS3V3Adapter) {
             return $adapter->getClient()->getObjectUrl(
-                $adapter->getBucket(),
-                $adapter->getPathPrefix() . $path
+                $adapter->getConfig()['bucket'],
+                $adapter->path($path)
             );
         }
 
@@ -115,19 +129,15 @@ class Drive
 
     public function getSignedUrl(string $type, string $path, DateTimeInterface $expire): string
     {
-        /** @var Filesystem $filesystem */
-        $filesystem = $this->getFilesystem();
+        $adapter = $this->storage->getAdapter();
 
-        /** @var AdapterInterface $adapter */
-        $adapter = $filesystem->getAdapter();
-
-        if ($adapter instanceof AwsS3Adapter) {
+        if ($adapter instanceof AwsS3V3Adapter) {
             $client = $adapter->getClient();
             $command = $client->getCommand(
                 $type === 'upload' ? 'PutObject' : 'GetObject',
                 [
-                    'Bucket' => $adapter->getBucket(),
-                    'Key' => $adapter->getPathPrefix() . $path,
+                    'Bucket' => $adapter->getConfig()['bucket'],
+                    'Key' => $adapter->path($path),
                     'ACL' => 'public-read',
                     'ResponseContentDisposition' => 'attachment'
                     /** @todo Make configurable */
@@ -136,7 +146,7 @@ class Drive
 
             $request = $client->createPresignedRequest($command, $expire);
 
-            return (string)$request->getUri();
+            return (string) $request->getUri();
         }
 
         throw new RuntimeException(
@@ -153,23 +163,19 @@ class Drive
         return $this->getSignedUrl('download', $path, $expire);
     }
 
-    public function deleteDir(string $id): bool
+    public function deleteDir(string $id): void
     {
-        /** @var Filesystem $filesystem */
-        $filesystem = $this->getFilesystem();
-
-        return $filesystem->deleteDir($id);
+        $this->storage->getDriver()->deleteDirectory($id);
     }
 
-    public function copyFile(string $sourcePath, string $destinationPath): bool
+    public function copyFile(string $sourcePath, string $destinationPath): void
     {
-        /** @var Filesystem $filesystem */
-        $filesystem = $this->getFilesystem();
+        $filesystem = $this->storage->getDriver();
 
         if ($filesystem->has($destinationPath)) {
             $filesystem->delete($destinationPath);
         }
 
-        return $filesystem->copy($sourcePath, $destinationPath);
+        $filesystem->copy($sourcePath, $destinationPath);
     }
 }
