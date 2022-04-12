@@ -5,7 +5,7 @@ namespace Detail\Laravel\Drive;
 use DateTimeInterface;
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
-use Illuminate\Contracts\Filesystem\Filesystem as IlluminateFilesystem;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\FileAttributes;
@@ -21,7 +21,7 @@ class Drive
 {
     private array $options;
     private Key $processorKey;
-    private IlluminateFilesystem $storage;
+    private Filesystem $filesystem;
 
     public function __construct(array $options = [])
     {
@@ -43,7 +43,7 @@ class Drive
         }
 
         $this->options = $options;
-        $this->storage = Storage::build($options);
+        $this->filesystem = Storage::build($options);
     }
 
     public function getConfiguration(): string
@@ -68,7 +68,7 @@ class Drive
 
     public function getAttributes(string $path): FileAttributes
     {
-        $adapter = $this->storage->getAdapter();
+        $adapter = $this->filesystem->getAdapter();
 
         if ($adapter instanceof AwsS3V3Adapter) {
             return $adapter->getAdapter()->fileSize($path); // Could use any other return ing FileAttributes
@@ -88,23 +88,9 @@ class Drive
         return trim($attributes->extraMetadata()['etag'] ?? '', '"');
     }
 
-    /**
-     * @deprecated Use getFileAttributes instead.
-     */
-    public function getMetadata(string $path): array
-    {
-        $attributes = $this->getAttributes($path);
-
-        return [
-            'mimetype' => $attributes->mimeType(),
-            'size' => $attributes->fileSize(),
-            'etag' => $this->extractHash($attributes),
-        ];
-    }
-
     public function getUrl(string $path): string
     {
-        $adapter = $this->storage->getAdapter();
+        $adapter = $this->filesystem->getAdapter();
 
         if ($adapter instanceof AwsS3V3Adapter) {
             return $adapter->getClient()->getObjectUrl(
@@ -129,7 +115,7 @@ class Drive
 
     public function getSignedUrl(string $type, string $path, DateTimeInterface $expire): string
     {
-        $adapter = $this->storage->getAdapter();
+        $adapter = $this->filesystem->getAdapter();
 
         if ($adapter instanceof AwsS3V3Adapter) {
             $client = $adapter->getClient();
@@ -165,12 +151,12 @@ class Drive
 
     public function deleteDir(string $id): void
     {
-        $this->storage->getDriver()->deleteDirectory($id);
+        $this->filesystem->getDriver()->deleteDirectory($id);
     }
 
     public function copyFile(string $sourcePath, string $destinationPath): void
     {
-        $filesystem = $this->storage->getDriver();
+        $filesystem = $this->filesystem->getDriver();
 
         if ($filesystem->has($destinationPath)) {
             $filesystem->delete($destinationPath);
