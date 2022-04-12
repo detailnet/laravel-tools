@@ -46,6 +46,11 @@ class Drive
         $this->filesystem = Storage::build($options);
     }
 
+    public function getFilesystem(): Filesystem
+    {
+        return $this->filesystem;
+    }
+
     public function getConfiguration(): string
     {
         $string = json_encode($this->options);
