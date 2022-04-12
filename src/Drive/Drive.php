@@ -68,16 +68,14 @@ class Drive
 
     public function getAttributes(string $path): FileAttributes
     {
-        $adapter = $this->filesystem->getAdapter();
-
-        if ($adapter instanceof AwsS3V3Adapter) {
-            return $adapter->getAdapter()->fileSize($path); // Could use any other return ing FileAttributes
+        if ($this->filesystem instanceof AwsS3V3Adapter) {
+            return $this->filesystem->getAdapter()->fileSize($path); // Could use any other return ing FileAttributes
         }
 
         throw new RuntimeException(
             sprintf(
-                'Unsupported filesystem adapter "%s" on "%s"',
-                get_class($adapter),
+                'Unsupported filesystem "%s" on "%s"',
+                get_class($this->filesystem),
                 __FUNCTION__
             )
         );
@@ -90,19 +88,17 @@ class Drive
 
     public function getUrl(string $path): string
     {
-        $adapter = $this->filesystem->getAdapter();
-
-        if ($adapter instanceof AwsS3V3Adapter) {
-            return $adapter->getClient()->getObjectUrl(
-                $adapter->getConfig()['bucket'],
-                $adapter->path($path)
+        if ($this->filesystem instanceof AwsS3V3Adapter) {
+            return $this->filesystem->getClient()->getObjectUrl(
+                $this->filesystem->getConfig()['bucket'],
+                $this->filesystem->path($path)
             );
         }
 
         throw new RuntimeException(
             sprintf(
-                'Unsupported filesystem adapter "%s" on "%s"',
-                get_class($adapter),
+                'Unsupported filesystem "%s" on "%s"',
+                get_class($this->filesystem),
                 __FUNCTION__
             )
         );
@@ -115,15 +111,13 @@ class Drive
 
     public function getSignedUrl(string $type, string $path, DateTimeInterface $expire): string
     {
-        $adapter = $this->filesystem->getAdapter();
-
-        if ($adapter instanceof AwsS3V3Adapter) {
-            $client = $adapter->getClient();
+        if ($this->filesystem instanceof AwsS3V3Adapter) {
+            $client = $this->filesystem->getClient();
             $command = $client->getCommand(
                 $type === 'upload' ? 'PutObject' : 'GetObject',
                 [
-                    'Bucket' => $adapter->getConfig()['bucket'],
-                    'Key' => $adapter->path($path),
+                    'Bucket' => $this->filesystem->getConfig()['bucket'],
+                    'Key' => $this->filesystem->path($path),
                     'ACL' => 'public-read',
                     'ResponseContentDisposition' => 'attachment'
                     /** @todo Make configurable */
@@ -137,8 +131,8 @@ class Drive
 
         throw new RuntimeException(
             sprintf(
-                'Unsupported filesystem adapter "%s" on "%s"',
-                get_class($adapter),
+                'Unsupported filesystem "%s" on "%s"',
+                get_class($this->filesystem),
                 __FUNCTION__
             )
         );
@@ -156,12 +150,12 @@ class Drive
 
     public function copyFile(string $sourcePath, string $destinationPath): void
     {
-        $filesystem = $this->filesystem->getDriver();
+        $driver = $this->filesystem->getDriver();
 
-        if ($filesystem->has($destinationPath)) {
-            $filesystem->delete($destinationPath);
+        if ($driver->has($destinationPath)) {
+            $driver->delete($destinationPath);
         }
 
-        $filesystem->copy($sourcePath, $destinationPath);
+        $driver->copy($sourcePath, $destinationPath);
     }
 }
