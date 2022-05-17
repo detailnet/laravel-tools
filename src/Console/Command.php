@@ -253,7 +253,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         if ($this->shutdown) { // Twice <Ctrl>+C => Hard kill
             $this->error('Received shutdown signal more than once, exiting now');
 
-            exit(-1);
+            exit(0);
         }
 
         $this->shutdown = true;
