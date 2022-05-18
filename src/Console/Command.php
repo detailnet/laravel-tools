@@ -50,7 +50,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
      * Ref: https://help.fortrabbit.com/worker-pro#toc-graceful-shutdown
      */
     protected bool $shutdown = false;
-
+    protected int $remainingRuns = 1000; // Max runs before soft termination for long-running scripts, a scheduler will restart it
     // Some commands might want to output what a sub-function call logs, simply toggle $this->outputLog before the specific function.
     protected bool $outputLog = false; // Initially set to false
 
@@ -75,6 +75,11 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         // Using a global try/catch block to let even long-running scripts fail
         try {
             while (true) {
+                if (--$this->remainingRuns <= 0) {
+                    $this->verbose('Maximum run iterations reached');
+                    exit(0);
+                }
+
                 Log::info('Start ' . $commandName);
 
                 $startedOn = microtime(true);
