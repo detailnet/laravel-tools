@@ -14,6 +14,7 @@ use function class_basename;
 use function date;
 use function floor;
 use function get_class;
+use function intval;
 use function microtime;
 use function range;
 use function round;
@@ -24,23 +25,30 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
 {
     public const OPTION_TIMEOUT = 'timeout';
     public const OPTION_INTERVAL = 'interval';
+    public const OPTION_MAX_RUNS = 'max-runs';
     public const OPTION_DIE_ON_SUCCESS = 'die-on-success';
+
+    protected const MAX_RUNTIME = 3600; // One hour, used to calculate the max-runs if not passed on command execution
 
     protected const OPTIONS = [
         self::OPTION_TIMEOUT =>
-            ' {--timeout= : Timeout in seconds}',
+            ' {--timeout= : Timeout between runs in seconds.}',
         self::OPTION_INTERVAL =>
-            ' {--interval= : Run each interval in seconds. If runtime longer than given interval the function is '
-            . 'restarted immediately after completion, otherwise waits the missing interval before restart}',
+            ' {--interval= : Interval between runs in seconds. If runtime longer than given interval the function is '
+            . 'triggered right after completion, otherwise waits the missing interval before re-run.}',
+        self::OPTION_MAX_RUNS =>
+            '{--max-runs= : Max runs before soft termination occurs, used in combination with timout or interval, '
+            . 'default ' . self::MAX_RUNTIME . 'seconds.}',
         self::OPTION_DIE_ON_SUCCESS =>
             ' {--die-on-success : After a successful execution and awaited the specified time (timeout or interval), '
-            . 'stops function execution. This should be normally used in combination with a scheduler that '
-            . 'restarts the function on exit. This permits a clean restart to free all resources}',
+            . 'stops function execution. This permits a clean restart to free all resources. '
+            . 'To be used in combination with a scheduler that respawns the worker on exit.}}',
     ];
 
     protected const ALL_OPTIONS =
         self::OPTIONS[self::OPTION_TIMEOUT] .
         self::OPTIONS[self::OPTION_INTERVAL] .
+        self::OPTIONS[self::OPTION_MAX_RUNS] .
         self::OPTIONS[self::OPTION_DIE_ON_SUCCESS];
 
     /**
@@ -50,7 +58,6 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
      * Ref: https://help.fortrabbit.com/worker-pro#toc-graceful-shutdown
      */
     protected bool $shutdown = false;
-    protected int $remainingRuns = 1000; // Max runs before soft termination for long-running scripts, a scheduler will restart it
     // Some commands might want to output what a sub-function call logs, simply toggle $this->outputLog before the specific function.
     protected bool $outputLog = false; // Initially set to false
 
@@ -59,8 +66,13 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         $commandName = class_basename(static::class);
         $options = $this->options();
         $timeout = $options[self::OPTION_TIMEOUT] ?? null;
+        $timeout = $timeout !== null ? intval($timeout) : null;
         $interval = $options[self::OPTION_INTERVAL] ?? null;
-        $dieOnSuccess = $options[self::OPTION_DIE_ON_SUCCESS] ?? false;
+        $interval = $interval !== null ? intval($interval) : null;
+        $remainingRuns = intval(
+            $options[self::OPTION_MAX_RUNS] ?? (string) floor(self::MAX_RUNTIME / (($timeout ?? 1) + ($interval ?? 0)))
+        );
+        $dieOnSuccess = (bool) ($options[self::OPTION_DIE_ON_SUCCESS] ?? false);
 
         Log::withContext(['command' => $commandName]);
         Log::info('Handle ' . $commandName, $options);
@@ -72,10 +84,12 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
             }
         );
 
+        $this->verbose(sprintf('Maximum run iterations set to %d', $remainingRuns));
+
         // Using a global try/catch block to let even long-running scripts fail
         try {
             while (true) {
-                if (--$this->remainingRuns <= 0) {
+                if (--$remainingRuns <= 0) {
                     $this->verbose('Maximum run iterations reached');
                     exit(0);
                 }
@@ -104,7 +118,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
                             sprintf(
                                 'Runtime %s [s]: %s',
                                 $runtime,
-                                $timeout ? sprintf('Set timeout to %s [s]', $timeout) : 'Restarting immediately'
+                                $timeout !== null ? sprintf('Set timeout to %s [s]', $timeout) : 'Restarting immediately'
                             ),
                             2,
                             false
@@ -116,7 +130,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
                         $this->sleep($timeout);
                     }
 
-                    if ($dieOnSuccess && $success) {
+                    if ($dieOnSuccess && $success === true) {
                         $this->verbose('Halting execution on success');
                         exit(0);
                     }
@@ -200,6 +214,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
      * Watchdog for graceful shutdown
      *
      * This watchdog should be placed in every processing loop, where a graceful shutdown can be done.
+     * Can optionally pass a callback to execute if shutdown received.
      */
     protected function shutdownWatchdog(string $message = null, callable $callback = null, array $callbackParams = []): void
     {
