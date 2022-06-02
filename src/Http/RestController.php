@@ -315,6 +315,9 @@ abstract class RestController extends Controller
         return [$id];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function updateValidatorOptions(?Model $model = null): array
     {
         return [];

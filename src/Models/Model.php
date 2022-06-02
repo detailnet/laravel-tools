@@ -44,6 +44,7 @@ abstract class Model extends OdmModel
     private const MAX_INDEXES_PER_COLLECTION = 64 - 1; // 64: ref: https://docs.mongodb.com/manual/reference/limits/ ; the -1 because '_id' is always indexed automatically
 
     protected $hidden = ['_id']; // Do not serialize '_id', use 'id' instead
+    /** @var string[] */
     protected $appends = ['id']; // Serialize 'id'
     protected $connection = 'mongodb';
 
@@ -54,31 +55,55 @@ abstract class Model extends OdmModel
      * The public methods `createValidator` and `updateValidator` are not extendable on purpose (finals).
      */
 
+    /**
+     * @param mixed[] $data
+     * @param array<string, mixed> $options
+     */
     public final static function createValidator(array $data, array $options = []): ValidatorContract
     {
         return Validator::make($data, array_filter(static::createRules($options)));
     }
 
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
     protected static function createRules(array $options = []): array
     {
         return []; // Empty stub, each model should define the own ones
     }
 
+    /**
+     * @param mixed[] $data
+     * @param array<string, mixed> $options
+     */
     public final static function updateValidator(array $data, array $options = []): ValidatorContract
     {
         return Validator::make($data, array_filter(static::updateRules($options)));
     }
 
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
     protected static function updateRules(array $options = []): array
     {
         return []; // Empty stub, each model should define the own ones
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function onlySortedFields(): array
     {
         return array_intersect_key($this->toArray(), array_flip(static::SERIALIZATION_ORDER));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         // Embedded relations are not loaded by default, this causes on serialization:
@@ -154,6 +179,8 @@ abstract class Model extends OdmModel
 
     /**
      * Get fields that need an index, for whole collection and not a client
+     *
+     * @return array<int, string|string[]>
      */
     protected function indexes(): array
     {
@@ -161,7 +188,8 @@ abstract class Model extends OdmModel
     }
 
     /**
-     * @param string|array $columns
+     * @param string|string[] $columns
+     * @param array<string, bool>|null $options
      */
     private function createIndex($columns, ?string $name = null, ?array $options = null): void
     {

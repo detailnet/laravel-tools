@@ -215,6 +215,8 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
      *
      * This watchdog should be placed in every processing loop, where a graceful shutdown can be done.
      * Can optionally pass a callback to execute if shutdown received.
+     *
+     * @param mixed[] $callbackParams
      */
     protected function shutdownWatchdog(string $message = null, callable $callback = null, array $callbackParams = []): void
     {
@@ -252,7 +254,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
     /**
      * Get the list of signals handled by the command.
      *
-     * @return array
+     * @return int[]
      */
     public function getSubscribedSignals(): array
     {

@@ -1,4 +1,7 @@
 parameters:
+  typeAliases:
+    FilterItem: "array{property: string, operator?: string, value: string|int|float|bool|null}"
+    SortItem: "array{property: string, direction?: 'asc'|'desc'|1|-1}"
 
   stubFiles:
     - stubs/Jenssegers/Mongodb/Eloquent/Builder.php

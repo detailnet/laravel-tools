@@ -19,10 +19,14 @@ use function trim;
 
 class Drive
 {
+    /** @var array<string, string> */
     private array $options;
     private Key $processorKey;
     private Filesystem $filesystem;
 
+    /**
+     * @param array<string, string> $options
+     */
     public function __construct(array $options = [])
     {
         if ($options['driver'] === 's3') {
