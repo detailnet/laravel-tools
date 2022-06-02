@@ -25,6 +25,7 @@
         "sort-packages": true
     },
     "require": {
+        "ext-pcntl": "*",
         "illuminate/support": "^9.0",
         "illuminate/container": "^9.0",
         "illuminate/database": "^9.0",

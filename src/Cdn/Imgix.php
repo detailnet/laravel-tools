@@ -21,6 +21,9 @@ class Imgix implements CdnInterface
     ) {
     }
 
+    /**
+     * @param array<string, string> $options
+     */
     public static function create(array $options): Imgix
     {
         $validator = Validator::make($options, [

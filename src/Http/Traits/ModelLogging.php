@@ -17,6 +17,7 @@ trait ModelLogging
 {
     /**
      * @param Model|class-string $model
+     * @param array<string, mixed> $data
      */
     protected function logPersisted(string $action, $model, array $data): void
     {
@@ -41,7 +42,10 @@ trait ModelLogging
     }
 
     /**
+     * @param array<string, mixed> $data
      * @param Model|class-string $model
+     *
+     * @return array<string, mixed>
      */
     private function clearInputData(array $data, $model): array
     {
@@ -53,6 +57,7 @@ trait ModelLogging
     }
 
     /**
+     * @param array<string, mixed> $data
      * @param Model|class-string $model
      */
     protected function logError(string $action, Throwable $e, $model, array $data): void

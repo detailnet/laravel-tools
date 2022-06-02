@@ -28,8 +28,14 @@ use function json_decode;
 use function json_last_error_msg;
 use function request;
 
+/**
+ * // Types need to be defined in phpstan/extension.neon too (maybe because this is a trait?)
+ * @phpstan-type FilterItem array{property: string, operator?: string, value: string|int|float|bool|null}
+ * @phpstan-type SortItem array{property: string, direction?: 'asc'|'desc'|1|-1}
+ */
 trait CollectionQuery
 {
+    /** @var array<string, string> */
     private array $operators = [
         'eq' => '=',
         'gt' => '>',
@@ -44,6 +50,13 @@ trait CollectionQuery
         'not in' => 'notin',
     ];
 
+    /**
+     * @param string[] $excludedFields
+     * @param FilterItem[] $defaultFilters
+     * @param SortItem[] $defaultSorters
+     *
+     * @return array<string, mixed>
+     */
     public function getCollectionFromRequest(
         Builder|Relation|null $model,
         string $collectionName = 'data',
@@ -122,6 +135,11 @@ trait CollectionQuery
         ];
     }
 
+    /**
+     * @param FilterItem[] $defaultFilters
+     *
+     * @return FilterItem[]
+     */
     private function getFilters(array $defaultFilters = []): array
     {
         /** @todo Should accept array too e.g.: filter[0]['property'], filter[0]['operation'], ... Test it */
@@ -151,6 +169,11 @@ trait CollectionQuery
         return $filters;
     }
 
+    /**
+     * @param SortItem[] $defaultSorters
+     *
+     * @return SortItem[]
+     */
     private function getSorters(array $defaultSorters = []): array
     {
         /** @todo Should accept array too e.g.: sort[0]['property'], sort[0]['direction'], ... Test it */
@@ -225,6 +248,11 @@ trait CollectionQuery
         return $pageNumber;
     }
 
+    /**
+     * @param string[] $excludes
+     *
+     * @return mixed[]
+     */
     private function getCollectionData(?IteratorAggregate $data, array $excludes = []): array
     {
         if ($data === null) {
