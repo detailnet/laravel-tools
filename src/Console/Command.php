@@ -116,9 +116,9 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
 
                         $this->verbose(
                             sprintf(
-                                'Runtime %s [s]: %s',
+                                'Runtime %d [s]: %d',
                                 $runtime,
-                                $timeout !== null ? sprintf('Set timeout to %s [s]', $timeout) : 'Restarting immediately'
+                                $timeout !== null ? sprintf('Set timeout to %d [s]', $timeout) : 'Restarting immediately'
                             ),
                             2,
                             false
@@ -201,7 +201,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
      */
     protected function sleep(int $timeout): void
     {
-        $msgPattern = 'Shutting down safely while in sleep (slept for %s out of %s seconds)';
+        $msgPattern = 'Shutting down safely while in sleep (slept for %d out of %d seconds)';
 
         foreach (range(1, $timeout) as $counter) {
             $this->shutdownWatchdog(sprintf($msgPattern, $counter - 1, $timeout));
