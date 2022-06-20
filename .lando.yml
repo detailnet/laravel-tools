@@ -19,7 +19,7 @@ services:
       volumes:
         - ${HOME}/.lando/composer_cache:/var/www/.composer/cache
       environment:
-        PHP_IDE_CONFIG: "serverName=detail-mam-api.detailnet.me" # include a PHP_IDE_CONFIG for PhpStorm
+        PHP_IDE_CONFIG: "serverName=laravel-tools.detailnet.me" # include a PHP_IDE_CONFIG for PhpStorm
       #    COMPOSER_AUTH: |
       #      {"github-oauth": {"github.com": "<your token>"}}
 

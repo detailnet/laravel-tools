@@ -100,6 +100,7 @@ trait SortByDragAndDrop
     /**
      * Properties used to define the group within the sorting has to be made against.
      * For a tree structure normally the 'parent_id', when client is involved 'client_id' too. When standalone collection empty array.
+     * @return string[]
      */
     protected function adjacentSortModelsCompareProperties(): array
     {
