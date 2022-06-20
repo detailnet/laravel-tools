@@ -11,9 +11,15 @@ use Illuminate\Support\Facades\Storage;
 use League\Flysystem\FileAttributes;
 use RuntimeException;
 use function array_merge;
+use function assert;
 use function env;
 use function get_class;
+use function hash_final;
+use function hash_init;
+use function hash_update_stream;
+use function is_resource;
 use function sprintf;
+use function strlen;
 use function strtoupper;
 use function trim;
 
@@ -92,7 +98,23 @@ class Drive
 
     public function extractHash(FileAttributes $attributes): string
     {
-        return trim($attributes->extraMetadata()['etag'] ?? '', '"');
+        $meta = $attributes->extraMetadata();
+        $etag = trim($meta['ETag'] ?? $meta['etag'] ?? '', '"');
+
+        if (strlen($etag) === 32) { // $etag !== '' && !str_contains($etag, '-')
+            return $etag;
+        }
+
+        // If the etag contains a dash, is because the upload was performed with as multipart
+        // Ref:https://stackoverflow.com/questions/12186993/what-is-the-algorithm-to-compute-the-amazon-s3-etag-for-a-file-larger-than-5gb
+
+        $hashContext = hash_init('md5');
+        $stream = $this->getFilesystem()->readStream($attributes->path());
+
+        assert(is_resource($stream));
+        hash_update_stream($hashContext, $stream);
+
+        return hash_final($hashContext);
     }
 
     public function getUrl(string $path): string
