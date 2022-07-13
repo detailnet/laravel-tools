@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Detail\Laravel\Console;
 
 use DateTime;
@@ -18,7 +20,6 @@ use function intval;
 use function microtime;
 use function range;
 use function round;
-use function sleep;
 use function sprintf;
 
 abstract class Command extends BaseCommand implements SignalableCommandInterface
@@ -32,17 +33,20 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
 
     protected const OPTIONS = [
         self::OPTION_TIMEOUT =>
-            ' {--timeout= : Timeout between runs in seconds.}',
+            ' {--timeout= : Timeout between runs in seconds within max runtime of ' . self::MAX_RUNTIME . '. '
+            . 'If bigger than ' . self::MAX_RUNTIME . ' you should pass the "' . self::OPTION_MAX_RUNS . '" option too.}',
         self::OPTION_INTERVAL =>
-            ' {--interval= : Interval between runs in seconds. If runtime longer than given interval the function is '
-            . 'triggered right after completion, otherwise waits the missing interval before re-run.}',
+            ' {--interval = : Interval between runs in seconds within max runtime of ' . self::MAX_RUNTIME . '. '
+            . 'If runtime longer than given interval the function is triggered right after completion, '
+            . 'otherwise waits the missing interval before re-run. '
+            . 'If bigger than ' . self::MAX_RUNTIME . ' you should pass the "' . self::OPTION_MAX_RUNS . '" option too.}',
         self::OPTION_MAX_RUNS =>
             '{--max-runs= : Max runs before soft termination occurs, used in combination with timout or interval, '
-            . 'default ' . self::MAX_RUNTIME . 'seconds.}',
+            . 'default is ' . self::MAX_RUNTIME . ' seconds divided by timeout or interval.}',
         self::OPTION_DIE_ON_SUCCESS =>
             ' {--die-on-success : After a successful execution and awaited the specified time (timeout or interval), '
             . 'stops function execution. This permits a clean restart to free all resources. '
-            . 'To be used in combination with a scheduler that respawns the worker on exit.}}',
+            . 'To be used in combination with a scheduler that respawns the worker on exit.}',
     ];
 
     protected const ALL_OPTIONS =
@@ -65,14 +69,6 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
     {
         $commandName = class_basename(static::class);
         $options = $this->options();
-        $timeout = $options[self::OPTION_TIMEOUT] ?? null;
-        $timeout = $timeout !== null ? intval($timeout) : null;
-        $interval = $options[self::OPTION_INTERVAL] ?? null;
-        $interval = $interval !== null ? intval($interval) : null;
-        $remainingRuns = intval(
-            $options[self::OPTION_MAX_RUNS] ?? (string) floor(self::MAX_RUNTIME / (($timeout ?? 1) + ($interval ?? 0)))
-        );
-        $dieOnSuccess = (bool) ($options[self::OPTION_DIE_ON_SUCCESS] ?? false);
 
         Log::withContext(['command' => $commandName]);
         Log::info('Handle ' . $commandName, $options);
@@ -84,7 +80,31 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
             }
         );
 
-        $this->verbose(sprintf('Maximum run iterations set to %d', $remainingRuns));
+        $timeout = $options[self::OPTION_TIMEOUT] ?? null;
+        $timeout = $timeout !== null ? intval($timeout) : null;
+        $interval = $options[self::OPTION_INTERVAL] ?? null;
+        $interval = $interval !== null ? intval($interval) : null;
+        $dieOnSuccess = (bool) ($options[self::OPTION_DIE_ON_SUCCESS] ?? false);
+        $remainingRuns = 1;
+
+        if ($timeout !== null || $interval !== null) {
+            $remainingRuns = intval(
+                $options[self::OPTION_MAX_RUNS] ?? (string) floor(self::MAX_RUNTIME / (($timeout ?? 1) + ($interval ?? 0)))
+            );
+            if ($remainingRuns === 0) {
+                $this->warn(
+                    sprintf(
+                        'Timeout or interval bigger than %d (max runtime), you should set "%s" option too.',
+                        self::MAX_RUNTIME,
+                        self::OPTION_MAX_RUNS
+                    )
+                );
+
+                $remainingRuns = 1; // Run at least once
+            }
+
+            $this->verbose(sprintf('Maximum run iterations set to %d', $remainingRuns));
+        }
 
         // Using a global try/catch block to let even long-running scripts fail
         try {
