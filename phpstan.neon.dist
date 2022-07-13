@@ -8,6 +8,7 @@ parameters:
 
   paths:
     - src
+    - test
 
   checkGenericClassInNonGenericObjectType: false
   checkMissingIterableValueType: false

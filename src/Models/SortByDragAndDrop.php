@@ -27,6 +27,9 @@ use function sprintf;
  */
 trait SortByDragAndDrop
 {
+    /**
+     * @return string[]
+     */
     private static function updateSortIndexRule(): array
     {
         return ['string', 'regex:/^(?:after|before):' . RestController::UUID_V4_PATTERN . '$/'];
