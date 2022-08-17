@@ -36,7 +36,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
             ' {--timeout= : Timeout between runs in seconds within max runtime of ' . self::MAX_RUNTIME . '. '
             . 'If bigger than ' . self::MAX_RUNTIME . ' you should pass the "' . self::OPTION_MAX_RUNS . '" option too.}',
         self::OPTION_INTERVAL =>
-            ' {--interval = : Interval between runs in seconds within max runtime of ' . self::MAX_RUNTIME . '. '
+            ' {--interval= : Interval between runs in seconds within max runtime of ' . self::MAX_RUNTIME . '. '
             . 'If runtime longer than given interval the function is triggered right after completion, '
             . 'otherwise waits the missing interval before re-run. '
             . 'If bigger than ' . self::MAX_RUNTIME . ' you should pass the "' . self::OPTION_MAX_RUNS . '" option too.}',
