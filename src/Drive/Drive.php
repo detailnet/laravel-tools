@@ -144,20 +144,20 @@ class Drive
     {
         if ($this->filesystem instanceof AwsS3V3Adapter) {
             $client = $this->filesystem->getClient();
-            $command = $client->getCommand(
-                $type === 'upload' ? 'PutObject' : 'GetObject',
-                [
-                    'Bucket' => $this->filesystem->getConfig()['bucket'],
-                    'Key' => $this->filesystem->path($path),
-                    'ACL' => 'public-read',
-                    'ResponseContentDisposition' => 'attachment'
-                    /** @todo Make configurable */
-                ]
-            );
+            $args = [
+                'Bucket' => $this->filesystem->getConfig()['bucket'],
+                'Key' => $this->filesystem->path($path),
+            ];
 
-            $request = $client->createPresignedRequest($command, $expire);
+            if ($type === 'upload') {
+                $command = 'PutObject';
+                $args['ACL'] = 'public-read'; // @todo Make configurable
+            } else {
+                $command = 'GetObject';
+                $args['ResponseContentDisposition'] = 'attachment';
+            }
 
-            return (string) $request->getUri();
+            return (string) $client->createPresignedRequest($client->getCommand($command, $args), $expire)->getUri();
         }
 
         throw new RuntimeException(
