@@ -105,7 +105,7 @@ class Drive
             return $etag;
         }
 
-        // If the etag contains a dash, is because the upload was performed with as multipart
+        // If the etag contains a dash, is because the upload was performed as multipart
         // Ref:https://stackoverflow.com/questions/12186993/what-is-the-algorithm-to-compute-the-amazon-s3-etag-for-a-file-larger-than-5gb
 
         $hashContext = hash_init('md5');
