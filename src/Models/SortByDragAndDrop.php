@@ -9,16 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Jenssegers\Mongodb\Relations\EmbedsMany;
 use RuntimeException;
-use function array_key_exists;
-use function current;
+use function array_flip;
+use function array_keys;
 use function floor;
 use function is_int;
 use function is_string;
-use function key;
-use function next;
 use function preg_match;
-use function prev;
-use function reset;
 use function sprintf;
 
 /**
@@ -122,35 +118,40 @@ trait SortByDragAndDrop
         }
 
         $indexes = $this->fetchIndexes();
+        /** @var array<int, string> $indexMap */
+        $indexMap = array_flip(array_keys($indexes));
+        $currentIndex = null;
 
-        if (!array_key_exists($reference['uuid'], $indexes)) {
+        foreach ($indexMap as $index => $id) {
+            if ($id === $reference['uuid']) {
+                $currentIndex = $index;
+            }
+        }
+
+        if ($currentIndex === null) {
             throw new RuntimeException(
                 sprintf('Failed to apply sort_index: reference model "%s" not found within adjacent models', $reference['uuid'])
             );
         }
 
-        // Check that there is a space before or after the referenced model
-        reset($indexes); // Set internal pointer to first element
-
-        // Move internal pointer to referenced model
-        while (key($indexes) !== $reference['uuid']) {
-            next($indexes);
-        }
-
         switch ($reference['position']) {
             case 'before':
-                $max = current($indexes);
-                $min = prev($indexes) ?: 0;
+                $maxIndex = $currentIndex;
+                $minIndex = $currentIndex - 1;
                 break;
             case 'after':
-                $min = current($indexes);
-                $max = next($indexes) ?: ($min + 2 * self::SORT_INDEX_DEFAULT_DELTA);
+                $minIndex = $currentIndex;
+                $maxIndex = $currentIndex + 1;
                 break;
             default:
                 throw new RuntimeException(
                     sprintf('Failed to apply sort_index: position to reference "%s" not supported', $reference['position'])
                 );
         }
+
+        // Check boundaries
+        $min = $minIndex >= 0 ? $indexes[$indexMap[$minIndex]] : 0;
+        $max = $maxIndex < count($indexes) ? $indexes[$indexMap[$maxIndex]] : ($min + 2 * self::SORT_INDEX_DEFAULT_DELTA);
 
         // Mean value between min and max
         $newIndex = $min + (integer) floor(($max - $min) / 2);
