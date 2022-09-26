@@ -140,7 +140,7 @@ trait CollectionQuery
      *
      * @return FilterItem[]
      */
-    private function getFilters(array $defaultFilters = []): array
+    protected function getFilters(array $defaultFilters = []): array
     {
         /** @todo Should accept array too e.g.: filter[0]['property'], filter[0]['operation'], ... Test it */
         $filters = request()->query('filter', $defaultFilters);
@@ -174,7 +174,7 @@ trait CollectionQuery
      *
      * @return SortItem[]
      */
-    private function getSorters(array $defaultSorters = []): array
+    protected function getSorters(array $defaultSorters = []): array
     {
         /** @todo Should accept array too e.g.: sort[0]['property'], sort[0]['direction'], ... Test it */
         $sorters = request()->query('sort', $defaultSorters);
@@ -202,7 +202,7 @@ trait CollectionQuery
         return $sorters;
     }
 
-    private function getPageSize(?int $defaultPageSize, ?int $maxPageSize): ?int
+    protected function getPageSize(?int $defaultPageSize, ?int $maxPageSize): ?int
     {
         $pageSize = request()->query('page_size');
 
@@ -227,7 +227,7 @@ trait CollectionQuery
         return $pageSize;
     }
 
-    private function getPageNumber(): int
+    protected function getPageNumber(): int
     {
         $pageNumber = request()->query('page');
 
