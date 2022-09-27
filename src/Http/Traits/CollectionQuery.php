@@ -108,6 +108,27 @@ trait CollectionQuery
             };
         }
 
+        return $this->getPaginatedData(
+            $model,
+            $collectionName,
+            $defaultPageSize,
+            $maxPageSize,
+            $excludedFields
+        );
+    }
+
+    /**
+     * @param string[] $excludedFields
+     *
+     * @return array<string, mixed>
+     */
+    public function getPaginatedData(
+        Builder|Relation|Collection $model,
+        string $collectionName = 'data',
+        ?int $defaultPageSize = null,
+        ?int $maxPageSize = null,
+        array $excludedFields = [],
+    ): array {
         if (($pageSize = $this->getPageSize($defaultPageSize, $maxPageSize)) !== null) {
             $page = $this->getPageNumber();
 
