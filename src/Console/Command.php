@@ -109,7 +109,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         // Using a global try/catch block to let even long-running scripts fail
         try {
             while (true) {
-                if (--$remainingRuns <= 0) {
+                if (--$remainingRuns < 0) {
                     $this->verbose('Maximum run iterations reached');
                     exit(0);
                 }
