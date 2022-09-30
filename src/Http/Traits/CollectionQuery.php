@@ -3,6 +3,7 @@
 namespace Detail\Laravel\Http\Traits;
 
 use Detail\Laravel\Models\Model;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -280,11 +281,19 @@ trait CollectionQuery
             return [];
         }
 
-        foreach ($data->getIterator() as $model) {
-            if ($model instanceof Model) {
+        foreach ($data->getIterator() as &$item) {
+            if ($item instanceof Model) {
                 if (count($excludes) > 0) {
-                    $model->makeHidden($excludes);
+                    $item->makeHidden($excludes);
                 }
+            } else {
+                $data = new Data($item);
+
+                foreach ($excludes as $key) {
+                    $data->remove($key);
+                }
+
+                $item = $data->export();
             }
         }
 
