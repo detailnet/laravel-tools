@@ -177,7 +177,7 @@ trait CollectionQuery
         $validator = Validator::make(
             $filters,
             [
-                '*.property' => ['required', 'regex:/^[a-z][0-9a-z_.]*[a-z]$/i'],
+                '*.property' => ['required', 'regex:/^[0-9a-z][0-9a-z_.-]*[0-9a-z]$/i'],
                 '*.operator' => ['nullable', Rule::in(array_merge(array_keys($this->operators), array_values($this->operators)))],
                 '*.value' => ['nullable'],
             ]
