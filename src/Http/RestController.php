@@ -27,8 +27,10 @@ use function assert;
 use function class_basename;
 use function count;
 use function explode;
+use function in_array;
 use function is_a;
 use function preg_match;
+use function request;
 use function response;
 use function sprintf;
 
@@ -54,9 +56,14 @@ abstract class RestController extends Controller
     public function index(): JsonResponse
     {
         $collection = $this->getCollection();
+        $excludedFields = static::LISTING_EXCLUDED_FIELDS;
 
         if (static::LIST_TREE) {
-            $collection?->where('parent_id', '=', null)?->orderBy('sort_index');
+            if (in_array(request()->query('tree') ?? '1', ['1', 'yes', 'true'], true)) {
+                $collection?->where('parent_id', '=', null)?->orderBy('sort_index');
+            } else {
+                $excludedFields[] = 'children'; // When on tree-listing but tree is disabled, do not show children
+            }
         }
 
         return response()->json(
@@ -65,7 +72,7 @@ abstract class RestController extends Controller
                 $this->getCollectionName(),
                 static::LISTING_DEFAULT_PAGE_SIZE,
                 static::LISTING_MAX_PAGE_SIZE,
-                static::LISTING_EXCLUDED_FIELDS,
+                $excludedFields,
                 static::LISTING_DEFAULT_FILTERS,
                 static::LISTING_DEFAULT_SORTERS
             )

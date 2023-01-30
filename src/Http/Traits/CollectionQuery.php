@@ -135,7 +135,7 @@ trait CollectionQuery
             if ($model instanceof Collection) {
                 $data = new LengthAwarePaginator($model->forPage($page, $pageSize), $model->count(), $pageSize, $page);
             } else {
-                /** @var LengthAwarePaginator $data */
+                /** @var LengthAwarePaginator $data */ // @phpstan-ignore-next-line paginate is in part of builder that the relation as a contract
                 $data = $model->paginate($pageSize, ['*'], 'page', $page);
             }
 
