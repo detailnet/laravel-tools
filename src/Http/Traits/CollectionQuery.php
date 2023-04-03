@@ -19,6 +19,7 @@ use function abort;
 use function array_keys;
 use function array_merge;
 use function array_values;
+use function call_user_func;
 use function count;
 use function ctype_digit;
 use function implode;
@@ -35,6 +36,9 @@ use function request;
  */
 trait CollectionQuery
 {
+    /** @var callable(Model):Model|null */
+    protected $preSerialize = null;
+
     /** @var array<string, string> */
     private array $operators = [
         'eq' => '=',
@@ -282,6 +286,10 @@ trait CollectionQuery
 
         foreach ($data->getIterator() as $model) {
             if ($model instanceof Model) {
+                if (isset($this->preSerialize)) {
+                    call_user_func($this->preSerialize, $model);
+                }
+
                 if (count($excludes) > 0) {
                     $model->makeHidden($excludes);
                 }

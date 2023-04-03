@@ -24,6 +24,7 @@ use function array_merge;
 use function array_pop;
 use function array_unique;
 use function assert;
+use function call_user_func;
 use function class_basename;
 use function count;
 use function explode;
@@ -52,6 +53,9 @@ abstract class RestController extends Controller
     protected const LISTING_MAX_PAGE_SIZE = null;
     protected const LISTING_EXCLUDED_FIELDS = [];
     protected const LOG_PERSISTENCE = true; //Sometimes there is no need to log (typically for comments or downloads that are as logs in DB)
+
+    /** @var callable(Model):Model|null */
+    protected $preSerialize = null;
 
     public function index(): JsonResponse
     {
@@ -133,6 +137,10 @@ abstract class RestController extends Controller
             );
         }
 
+        if (isset($this->preSerialize)) {
+            call_user_func($this->preSerialize, $model);
+        }
+
         return response()->json($model);
     }
 
@@ -195,6 +203,10 @@ abstract class RestController extends Controller
             return $this->errorResponse($e);
         }
 
+        if (isset($this->preSerialize)) {
+            call_user_func($this->preSerialize, $model);
+        }
+
         return response()->json($model, Response::HTTP_CREATED);
     }
 
@@ -255,6 +267,10 @@ abstract class RestController extends Controller
                 return $this->errorResponse($e);
             }
 
+            if (isset($this->preSerialize)) {
+                call_user_func($this->preSerialize, $model);
+            }
+
             return response()->json($model);
         }
 
@@ -296,6 +312,10 @@ abstract class RestController extends Controller
                 $this->logError('multi-update', $e, $model, $validated);
 
                 continue;
+            }
+
+            if (isset($this->preSerialize)) {
+                call_user_func($this->preSerialize, $model);
             }
 
             $result[] = $model;
