@@ -192,7 +192,7 @@ abstract class RestController extends Controller
                 $model->{$property} = $value;
             }
 
-            $model->save();
+            $this->createOnStore($model);
 
             if (static::LOG_PERSISTENCE) {
                 $this->logPersisted('create', $model, $validated);
@@ -208,6 +208,14 @@ abstract class RestController extends Controller
         }
 
         return response()->json($model, Response::HTTP_CREATED);
+    }
+
+    /**
+     * Permit override to create embedded models when using sub-routes
+     */
+    protected function createOnStore(Model $model): void
+    {
+        $model->save(); // As default cave the model (the DB creates it)
     }
 
     public function update(Request $request, string ...$id): JsonResponse
@@ -256,7 +264,7 @@ abstract class RestController extends Controller
                     $model->{$property} = $value;
                 }
 
-                $model->save();
+                $this->saveOnUpdate($model);
 
                 if (static::LOG_PERSISTENCE) {
                     $this->logPersisted('update', $model, $validated);
@@ -303,7 +311,7 @@ abstract class RestController extends Controller
                     $model->{$property} = $value;
                 }
 
-                $model->save();
+                $this->saveOnUpdate($model);
 
                 if (static::LOG_PERSISTENCE) {
                     $this->logPersisted('multi-update', $model, $validated);
@@ -328,6 +336,14 @@ abstract class RestController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    /**
+     * Permit override to update embedded models when using sub-routes
+     */
+    protected function saveOnUpdate(Model $model): void
+    {
+        $model->save(); // As default save the model
     }
 
     /**
@@ -362,7 +378,11 @@ abstract class RestController extends Controller
 
         if (!$this->isMulti($id)) {
             try {
-                $this->getCollection()?->find($id)?->delete();
+                $model = $this->getCollection()?->find($id);
+
+                if ($model instanceof Model) { // Checks that is not null
+                    $this->deleteOnDestroy($model);
+                }
 
                 if (static::LOG_PERSISTENCE) {
                     $this->logPersisted('delete', $this->modelClass(), ['id' => $id]);
@@ -373,7 +393,13 @@ abstract class RestController extends Controller
                 return $this->errorResponse($e);
             }
         } else {
-            $this->getCollection()?->whereIn('_id', $this->getIds($id))?->delete();
+            //$this->getCollection()?->whereIn('_id', $this->getIds($id))?->delete();
+
+            foreach ($this->getCollection()?->whereIn('_id', $this->getIds($id))?->getModels() ?? [] as $model) {
+                if ($model instanceof Model) { // Checks that is not null
+                    $this->deleteOnDestroy($model);
+                }
+            }
 
             if (static::LOG_PERSISTENCE) {
                 $this->logPersisted('multi-delete', $this->modelClass(), ['id' => $id]);
@@ -381,6 +407,14 @@ abstract class RestController extends Controller
         }
 
         return response()->noContent();
+    }
+
+    /**
+     * Permit override to delete embedded models when using sub-routes
+     */
+    protected function deleteOnDestroy(Model $model): void
+    {
+        $model->delete(); // As default delete the model
     }
 
     //public function drop(): Response
