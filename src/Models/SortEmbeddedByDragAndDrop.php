@@ -49,7 +49,7 @@ trait SortEmbeddedByDragAndDrop
         return $relation;
     }
 
-    public function getEmbeddedModel(string $embeddedProperty, SortableEmbeddedModel|string $modelOrId): ?SortableEmbeddedModel
+    private function getEmbeddedModel(string $embeddedProperty, SortableEmbeddedModel|string $modelOrId): ?SortableEmbeddedModel
     {
         assert(property_exists($this, $embeddedProperty));
 
@@ -86,10 +86,8 @@ trait SortEmbeddedByDragAndDrop
 
     public function sortEmbeddedModel(string $embeddedProperty, SortableEmbeddedModel $model): void
     {
-
-
         if (!is_string($model->sort_index)) {
-            throw new RuntimeException('Wrong call of sortEmbeddedModel method');
+            return; // Nothing to do
         }
 
         if (preg_match('/^(?<position>after|before):(?<uuid>' . RestController::UUID_V4_PATTERN . ')$/', $model->sort_index, $reference) === false) {
@@ -139,7 +137,7 @@ trait SortEmbeddedByDragAndDrop
         $model->sort_index = $newIndex;
     }
 
-    public function reindexEmbeddedModels(string $embeddedProperty): void
+    private function reindexEmbeddedModels(string $embeddedProperty): void
     {
         static $reindexAlreadyPerformed = false;
 
@@ -165,7 +163,7 @@ trait SortEmbeddedByDragAndDrop
         }
     }
 
-    public function getEmbeddedModelNextSortIndex(string $embeddedProperty): int
+    protected function getEmbeddedModelNextSortIndex(string $embeddedProperty): int
     {
         // Get higher value within the pairing
         $latest = $this->getEmbeddedRelation($embeddedProperty)->orderByDesc('sort_index')->first(['sort_index'])?->getAttributeValue('sort_index') ?? 0;

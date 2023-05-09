@@ -46,7 +46,7 @@ class EmbeddedSortableModel extends Model
             );
         }
 
-        $this->getEmbeddedModelNextSortIndex('items');
+        $item->sort_index = $this->getEmbeddedModelNextSortIndex('items');
 
         $this->items()->associate($item);
     }
