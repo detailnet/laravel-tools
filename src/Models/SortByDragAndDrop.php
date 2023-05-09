@@ -27,14 +27,6 @@ use function sprintf;
  */
 trait SortByDragAndDrop
 {
-    /**
-     * @return string[]
-     */
-    private static function updateSortIndexRule(): array
-    {
-        return ['string', 'regex:/^(?:after|before):' . RestController::UUID_V4_PATTERN . '$/'];
-    }
-
     private function onSortByDragDropChange(?callable $isWithinDescendants = null): void
     {
         if (($parentProperty = $this->adjacentSortModelsParentProperty()) !== null) {
@@ -199,10 +191,10 @@ trait SortByDragAndDrop
         $index = 0;
 
         // We need to retrieve filed sorted by sort_index and update that sort index, the operation is done by chunks of results
-        // there fore need sot be aware of what has been already updated. The solution is use 'chunkById';
+        // therefore needs to be aware of what has been already updated. The solution is use 'chunkById';
         // Ref: https://laravel.com/docs/8.x/queries#chunking-results
 
-        // But we have decided to go the better way, that might perform a few queries more (less performant), but is safer
+        // But we have decided to go the safer way, that might perform a few queries more (less performant)
         foreach (array_keys($this->fetchIndexes()) as $key) {
             $index += self::SORT_INDEX_DEFAULT_DELTA;
 
@@ -212,7 +204,7 @@ trait SortByDragAndDrop
                 continue;
             }
 
-            // $model->updateQuietly(['sort_index' => $index]); // Doe not works .. don't know why
+            // $model->updateQuietly(['sort_index' => $index]); // Does not works .. don't know why
             $model->sort_index = $index;
             $model->saveQuietly();
         }
