@@ -2,7 +2,7 @@
 
 namespace DetailTest\Laravel\Models;
 
-use Detail\Laravel\Models\ModelWithSortIndex;
+use Detail\Laravel\Models\Model;
 use Detail\Laravel\Models\SortByDragAndDrop;
 
 /**
@@ -11,7 +11,7 @@ use Detail\Laravel\Models\SortByDragAndDrop;
  * @property string $_id
  * @property int|string $sort_index // String is possible only on assignment, never on persist
  */
-class SortableModel extends ModelWithSortIndex
+class SortableModel extends Model
 {
     use SortByDragAndDrop;
 

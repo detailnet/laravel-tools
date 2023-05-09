@@ -32,7 +32,7 @@ trait SortEmbeddedByDragAndDrop
 {
     private function getEmbeddedRelation(string $embeddedProperty): EmbedsMany
     {
-        assert($this instanceof ModelWithSortIndex);
+        assert($this instanceof SortableEmbeddedModel);
 
         $relationGetter = [$this, $embeddedProperty];
 
@@ -49,11 +49,11 @@ trait SortEmbeddedByDragAndDrop
         return $relation;
     }
 
-    public function getEmbeddedModel(string $embeddedProperty, ModelWithSortIndex|string $modelOrId): ?ModelWithSortIndex
+    public function getEmbeddedModel(string $embeddedProperty, SortableEmbeddedModel|string $modelOrId): ?SortableEmbeddedModel
     {
         assert(property_exists($this, $embeddedProperty));
 
-        $id = ($modelOrId instanceof ModelWithSortIndex) ? $modelOrId->id : $modelOrId;
+        $id = ($modelOrId instanceof SortableEmbeddedModel) ? $modelOrId->id : $modelOrId;
 
         foreach ($this->$embeddedProperty as $model) {
             if ($model->id === $id) {
@@ -72,7 +72,7 @@ trait SortEmbeddedByDragAndDrop
         $indexes = [];
 
         $this->getEmbeddedRelation($embeddedProperty)->orderBy('sort_index')->each(
-            function (ModelWithSortIndex $model) use (&$indexes): void {
+            function (SortableEmbeddedModel $model) use (&$indexes): void {
                 if (!is_int($model->sort_index)) {
                     throw new RuntimeException('Some sort_index are not numeric');
                 }
@@ -84,7 +84,7 @@ trait SortEmbeddedByDragAndDrop
         return $indexes; // @phpstan-ignore-line Index is always string
     }
 
-    public function sortEmbeddedModel(string $embeddedProperty, ModelWithSortIndex $model): void
+    public function sortEmbeddedModel(string $embeddedProperty, SortableEmbeddedModel $model): void
     {
 
 

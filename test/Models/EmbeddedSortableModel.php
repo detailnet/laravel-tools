@@ -3,7 +3,7 @@
 namespace DetailTest\Laravel\Models;
 
 use Detail\Laravel\Models\Model;
-use Detail\Laravel\Models\ModelWithSortIndex;
+use Detail\Laravel\Models\SortableEmbeddedModel;
 use Detail\Laravel\Models\SortEmbeddedByDragAndDrop;
 use InvalidArgumentException;
 use Jenssegers\Mongodb\Relations\EmbedsMany;
@@ -15,7 +15,7 @@ use function sprintf;
  *
  * This class is a general example on the methods an embedded property should always have in the main class
  *
- * @property ModelWithSortIndex[] $items
+ * @property SortableEmbeddedModel[] $items
  */
 class EmbeddedSortableModel extends Model
 {
@@ -27,10 +27,10 @@ class EmbeddedSortableModel extends Model
 
     public function items(): EmbedsMany
     {
-        return $this->embedsMany(ModelWithSortIndex::class);
+        return $this->embedsMany(SortableEmbeddedModel::class);
     }
 
-    public function addItem(ModelWithSortIndex $item): void
+    public function addItem(SortableEmbeddedModel $item): void
     {
         if (!isset($item->id)) {
             $item->id = Uuid::uuid4()->toString();
@@ -51,7 +51,7 @@ class EmbeddedSortableModel extends Model
         $this->items()->associate($item);
     }
 
-    public function removeItem(ModelWithSortIndex $item): void
+    public function removeItem(SortableEmbeddedModel $item): void
     {
         if ($this->getItem($item) === null) {
             throw new \RuntimeException(sprintf('Item %d not found', $item->id));
@@ -64,9 +64,9 @@ class EmbeddedSortableModel extends Model
         $this->items()->dissociate($item);
     }
 
-    public function getItem(ModelWithSortIndex|string $itemOrId): ?ModelWithSortIndex
+    public function getItem(SortableEmbeddedModel|string $itemOrId): ?SortableEmbeddedModel
     {
-        $id = ($itemOrId instanceof ModelWithSortIndex) ? $itemOrId->id : $itemOrId;
+        $id = ($itemOrId instanceof SortableEmbeddedModel) ? $itemOrId->id : $itemOrId;
 
         foreach ($this->items as $item) {
             if ($item->id === $id) {

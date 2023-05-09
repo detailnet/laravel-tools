@@ -27,6 +27,8 @@ use function sprintf;
  */
 trait SortByDragAndDrop
 {
+    use SortByDragAndDropCommon;
+
     private function onSortByDragDropChange(?callable $isWithinDescendants = null): void
     {
         if (($parentProperty = $this->adjacentSortModelsParentProperty()) !== null) {
