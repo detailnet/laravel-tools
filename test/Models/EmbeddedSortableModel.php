@@ -5,6 +5,7 @@ namespace DetailTest\Laravel\Models;
 use Detail\Laravel\Models\Model;
 use Detail\Laravel\Models\SortableEmbeddedModel;
 use Detail\Laravel\Models\SortEmbeddedByDragAndDrop;
+use Illuminate\Database\Eloquent\Collection;
 use InvalidArgumentException;
 use Jenssegers\Mongodb\Relations\EmbedsMany;
 use Ramsey\Uuid\Uuid;
@@ -15,7 +16,7 @@ use function sprintf;
  *
  * This class is a general example on the methods an embedded property should always have in the main class
  *
- * @property SortableEmbeddedModel[] $items
+ * @property Collection<int, SortableEmbeddedModel> $items
  */
 class EmbeddedSortableModel extends Model
 {
@@ -38,12 +39,7 @@ class EmbeddedSortableModel extends Model
 
         // Verify same item is not already present
         if ($this->getItem($item) !== null) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Invalid item provided; item with id "%s" already exists',
-                    $item->id
-                )
-            );
+            throw new InvalidArgumentException(sprintf('Invalid item provided; item with id "%s" already exists', $item->id));
         }
 
         $item->sort_index = $this->getEmbeddedModelNextSortIndex('items');
@@ -68,12 +64,6 @@ class EmbeddedSortableModel extends Model
     {
         $id = ($itemOrId instanceof SortableEmbeddedModel) ? $itemOrId->id : $itemOrId;
 
-        foreach ($this->items as $item) {
-            if ($item->id === $id) {
-                return $item;
-            }
-        }
-
-        return null;
+        return $this->items->first(static fn(SortableEmbeddedModel $item): bool => $item->id === $id);
     }
 }
