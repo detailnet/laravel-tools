@@ -32,7 +32,7 @@ trait SortEmbeddedByDragAndDrop
 {
     private function getEmbeddedRelation(string $embeddedProperty): EmbedsMany
     {
-        assert($this instanceof SortableEmbeddedModel);
+        assert($this instanceof Model);
 
         $relationGetter = [$this, $embeddedProperty];
 
