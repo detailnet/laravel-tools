@@ -24,7 +24,7 @@ abstract class EmbeddedModelSortableByDragAndDrop extends Model
         return $this->attributes['id'] ?? null;
     }
 
-    public function updateSortIndex(): void
+    protected function updateSortIndex(): void
     {
         $parent = $this->getParentRelation()->getParent();
         $parentTraits = class_uses($parent); // Should use laravel class_uses_recursive()

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Jenssegers\Mongodb\Relations\EmbedsMany;
 use RuntimeException;
 use function array_filter;
+use function array_key_exists;
 use function asort;
 use function assert;
 use function call_user_func;
@@ -46,6 +47,17 @@ trait SortEmbeddedByDragAndDrop
                 static fn(EmbeddedModelSortableByDragAndDrop $item): array => [$item->id => ($item->id !== $model->id) ? $item->sort_index : null]
             )->toArray()
         );
+
+        if (!array_key_exists($reference['uuid'], $indexes)) {
+            // This happens also when trying to reposition before or after self, which has to be suppressed
+            // because we have already lost the integer value (self sort index is a string at this point)
+            throw new RuntimeException(
+                sprintf(
+                    'Failed to apply sort_index: reference model "%s" can\'t be self and has to be in the adjacent models',
+                    $reference['uuid']
+                )
+            );
+        }
 
         asort($indexes);
 

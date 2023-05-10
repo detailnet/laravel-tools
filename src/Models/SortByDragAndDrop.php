@@ -118,8 +118,13 @@ trait SortByDragAndDrop
         $indexes = $this->fetchIndexes();
 
         if (!array_key_exists($reference['uuid'], $indexes)) {
+            // This happens also when trying to reposition before or after self, which has to be suppressed
+            // because we have already lost the integer value (self sort index is a string at this point)
             throw new RuntimeException(
-                sprintf('Failed to apply sort_index: reference model "%s" not found within adjacent models', $reference['uuid'])
+                sprintf(
+                    'Failed to apply sort_index: reference model "%s" can\'t be self and has to be in the adjacent models',
+                    $reference['uuid']
+                )
             );
         }
 
@@ -197,7 +202,7 @@ trait SortByDragAndDrop
         // Ref: https://laravel.com/docs/8.x/queries#chunking-results
 
         // But we have decided to go the safer way, that might perform a few queries more (less performant)
-        foreach (array_keys($this->fetchIndexes()) as $key) {
+        foreach (array_keys($this->fetchIndexes()) as $key) { // Note: the current model is not re-indexed
             $index += self::SORT_INDEX_DEFAULT_DELTA;
 
             $model = self::query()->find($key);
