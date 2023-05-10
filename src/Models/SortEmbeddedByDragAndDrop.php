@@ -31,7 +31,7 @@ use function sprintf;
  */
 trait SortEmbeddedByDragAndDrop
 {
-    public function sortEmbeddedModel(string $embeddedProperty, SortableEmbeddedModel $model): void
+    public function sortEmbeddedModel(string $embeddedProperty, EmbeddedModelSortableByDragAndDrop $model): void
     {
         if (!is_string($model->sort_index)) {
             return; // Nothing to do
@@ -43,7 +43,7 @@ trait SortEmbeddedByDragAndDrop
 
         $indexes = array_filter(
             $this->getEmbeddedModelCollection($embeddedProperty)->mapWithKeys(
-                static fn(SortableEmbeddedModel $item): array => [$item->id => ($item->id !== $model->id) ? $item->sort_index : null]
+                static fn(EmbeddedModelSortableByDragAndDrop $item): array => [$item->id => ($item->id !== $model->id) ? $item->sort_index : null]
             )->toArray()
         );
 
@@ -88,7 +88,7 @@ trait SortEmbeddedByDragAndDrop
     {
         /** @var int $latest */
         $latest = $this->getEmbeddedModelCollection($embeddedProperty)->max(
-            static fn(SortableEmbeddedModel $model): int => is_int($model->sort_index) ? $model->sort_index : 0
+            static fn(EmbeddedModelSortableByDragAndDrop $model): int => is_int($model->sort_index) ? $model->sort_index : 0
         );
 
         if ($latest > (PHP_INT_MAX - Model::SORT_INDEX_DEFAULT_DELTA)) {
@@ -127,7 +127,7 @@ trait SortEmbeddedByDragAndDrop
         $index = 0;
 
         $this->getEmbeddedModelCollection($embeddedProperty)->each(
-            static function (SortableEmbeddedModel $model) use (&$index, $relation): void {
+            static function (EmbeddedModelSortableByDragAndDrop $model) use (&$index, $relation): void {
                 $index += Model::SORT_INDEX_DEFAULT_DELTA;
 
                 $model->sort_index = $index;
@@ -138,7 +138,7 @@ trait SortEmbeddedByDragAndDrop
     }
 
     /**
-     * @return Collection<int, SortableEmbeddedModel>
+     * @return Collection<int, EmbeddedModelSortableByDragAndDrop>
      */
     private function getEmbeddedModelCollection(string $embeddedProperty): Collection
     {

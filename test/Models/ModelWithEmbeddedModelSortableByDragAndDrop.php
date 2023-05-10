@@ -3,7 +3,6 @@
 namespace DetailTest\Laravel\Models;
 
 use Detail\Laravel\Models\Model;
-use Detail\Laravel\Models\SortableEmbeddedModel;
 use Detail\Laravel\Models\SortEmbeddedByDragAndDrop;
 use Illuminate\Database\Eloquent\Collection;
 use InvalidArgumentException;
@@ -16,9 +15,9 @@ use function sprintf;
  *
  * This class is a general example on the methods an embedded property should always have in the main class
  *
- * @property Collection<int, SortableEmbeddedModel> $items
+ * @property Collection<int, Item> $items
  */
-class EmbeddedSortableModel extends Model
+class ModelWithEmbeddedModelSortableByDragAndDrop extends Model
 {
     use SortEmbeddedByDragAndDrop;
 
@@ -28,10 +27,10 @@ class EmbeddedSortableModel extends Model
 
     public function items(): EmbedsMany
     {
-        return $this->embedsMany(SortableEmbeddedModel::class);
+        return $this->embedsMany(Item::class);
     }
 
-    public function addItem(SortableEmbeddedModel $item): void
+    public function addItem(Item $item): void
     {
         if (!isset($item->id)) {
             $item->id = Uuid::uuid4()->toString();
@@ -47,7 +46,7 @@ class EmbeddedSortableModel extends Model
         $this->items()->associate($item);
     }
 
-    public function removeItem(SortableEmbeddedModel $item): void
+    public function removeItem(Item $item): void
     {
         if ($this->getItem($item) === null) {
             throw new \RuntimeException(sprintf('Item %d not found', $item->id));
@@ -60,10 +59,10 @@ class EmbeddedSortableModel extends Model
         $this->items()->dissociate($item);
     }
 
-    public function getItem(SortableEmbeddedModel|string $itemOrId): ?SortableEmbeddedModel
+    public function getItem(Item|string $itemOrId): ?Item
     {
-        $id = ($itemOrId instanceof SortableEmbeddedModel) ? $itemOrId->id : $itemOrId;
+        $id = ($itemOrId instanceof Item) ? $itemOrId->id : $itemOrId;
 
-        return $this->items->first(static fn(SortableEmbeddedModel $item): bool => $item->id === $id);
+        return $this->items->first(static fn(Item $item): bool => $item->id === $id);
     }
 }

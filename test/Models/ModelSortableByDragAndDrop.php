@@ -11,7 +11,7 @@ use Detail\Laravel\Models\SortByDragAndDrop;
  * @property string $_id
  * @property int|string $sort_index // String is possible only on assignment, never on persist
  */
-class SortableModel extends Model
+class ModelSortableByDragAndDrop extends Model
 {
     use SortByDragAndDrop;
 
@@ -24,11 +24,11 @@ class SortableModel extends Model
     {
         parent::boot();
 
-        static::creating(function (SortableModel $model) {
+        static::creating(function (ModelSortableByDragAndDrop $model) {
             $model->sort_index = $model->getNextSortIndex();
         });
 
-        static::updating(function (SortableModel $model) {
+        static::updating(function (ModelSortableByDragAndDrop $model) {
             $model->onSortByDragDropChange();
         });
     }
