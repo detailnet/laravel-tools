@@ -2,6 +2,7 @@
 
 namespace Detail\Laravel\Models;
 
+use Detail\Laravel\Http\RestController;
 use GoldSpecDigital\LaravelEloquentUUID\Database\Eloquent\Uuid;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,7 +35,9 @@ abstract class Model extends OdmModel
     const UPDATED_AT = 'updated_on';
     const DELETED_AT = 'deleted_on';
 
+    public const UUID_V4_PATTERN = '[a-f0-9]{8}\-[a-f0-9]{4}\-4[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}'; // In PHP81 prepend final
     public const SORT_INDEX_DEFAULT_DELTA = 10000;
+    protected const SORT_INDEX_BY_DRAG_AND_DROP_RULE = ['string', 'regex:/^(?:after|before):' . self::UUID_V4_PATTERN . '$/'];
 
     public const RULE_OPTION_MULTI = 'multi';
 

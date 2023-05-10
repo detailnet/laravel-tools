@@ -39,7 +39,7 @@ class ModelSortableByDragAndDrop extends Model
     protected static function updateRules(array $options = []): array
     {
         return [
-            'sort_index' => self::updateSortIndexRule(),
+            'sort_index' => Model::SORT_INDEX_BY_DRAG_AND_DROP_RULE,
         ];
     }
 

@@ -15,7 +15,7 @@ use function is_callable;
  */
 abstract class EmbeddedModelSortableByDragAndDrop extends Model
 {
-    use SortByDragAndDropCommon;
+    use SortUtils;
 
     protected $primaryKey = 'id';
 
