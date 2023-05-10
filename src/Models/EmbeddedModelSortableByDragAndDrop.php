@@ -2,8 +2,10 @@
 
 namespace Detail\Laravel\Models;
 
+use Illuminate\Support\Str;
 use RuntimeException;
 use function call_user_func;
+use function class_basename;
 use function class_uses;
 use function is_callable;
 
@@ -50,5 +52,8 @@ abstract class EmbeddedModelSortableByDragAndDrop extends Model
      * Could get rid of this using Reflection into $this->getParentRelation(): gathering the
      * protected parameter Jenssegers\Mongodb\Relations\EmbedsOneOrMany::$localKey value.
      */
-    protected abstract static function getParentRelationAttributeName(): string;
+    protected static function getParentRelationAttributeName(): string
+    {
+        return Str::snake(Str::plural(class_basename(static::class)));
+    }
 }

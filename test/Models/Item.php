@@ -18,9 +18,4 @@ class Item extends EmbeddedModelSortableByDragAndDrop
             $item->updateSortIndex();
         });
     }
-
-    protected static function getParentRelationAttributeName(): string
-    {
-        return 'items';
-    }
 }
