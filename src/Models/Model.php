@@ -2,7 +2,6 @@
 
 namespace Detail\Laravel\Models;
 
-use Detail\Laravel\Http\RestController;
 use GoldSpecDigital\LaravelEloquentUUID\Database\Eloquent\Uuid;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Database\Eloquent\Builder;
@@ -136,28 +135,29 @@ abstract class Model extends OdmModel
 
     private function recursiveLoadEmbeddedRelations(): void
     {
-        // This should be fixed in \Jenssegers\Mongodb\Eloquent\Model,
-        // as the data is embedded, all the job is done in memory.
+        // This should be fixed in \Jenssegers\Mongodb\Eloquent\Model.
+        // As the data is embedded, all the job is done in memory.
+        // Ref: https://github.com/jenssegers/laravel-mongodb/issues/397
 
         // To get embedded relations could use Reflection, searching for methods that return
         // EmbedsMany or EmbedsOne, but performance degradation should be investigated.
         $relations = static::EMBEDDED_RELATIONS;
 
-        if (count($relations) > 0) {
-            $this->load($relations);
+        foreach ($relations as $relationName) {
+            $relation = $this->getAttribute($relationName);
 
-            foreach ($relations as $relationName) {
-                if ($this->{$relationName} instanceof Collection) {
-                    foreach ($this->{$relationName}->getIterator() as $model) {
-                        if ($model instanceof Model) {
-                            $model->recursiveLoadEmbeddedRelations();
-                        }
+            $this->setAttribute($relationName, $relation);
+
+            if ($relation instanceof Collection) {
+                foreach ($relation->getIterator() as $model) {
+                    if ($model instanceof Model) {
+                        $model->recursiveLoadEmbeddedRelations();
                     }
                 }
+            }
 
-                if ($this->{$relationName} instanceof Model) {
-                    $this->{$relationName}->recursiveLoadEmbeddedRelations();
-                }
+            if ($relation instanceof Model) {
+                $relation->recursiveLoadEmbeddedRelations();
             }
         }
     }
