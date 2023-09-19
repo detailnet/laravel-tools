@@ -70,7 +70,7 @@ class CreateIndexes extends Command
                     static function (Collection $collection) {
                         /** @var MongoCollection $collection */
 
-                        return $collection->aggregate(
+                        return $collection->aggregate( // @phpstan-ignore-line Ignoring at present
                             [
                                 ['$indexStats' => new stdClass()],
                             ],

@@ -30,7 +30,6 @@ use function json_last_error_msg;
 use function request;
 
 /**
- * // Types need to be defined in phpstan/extension.neon too (maybe because this is a trait?)
  * @phpstan-type FilterItem array{property: string, operator?: string, value: string|int|float|bool|null}
  * @phpstan-type SortItem array{property: string, direction?: 'asc'|'desc'|1|-1}
  */
