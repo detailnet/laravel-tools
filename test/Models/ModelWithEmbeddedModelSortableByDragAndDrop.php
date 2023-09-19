@@ -6,7 +6,7 @@ use Detail\Laravel\Models\Model;
 use Detail\Laravel\Models\SortEmbeddedByDragAndDrop;
 use Illuminate\Database\Eloquent\Collection;
 use InvalidArgumentException;
-use Jenssegers\Mongodb\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\EmbedsMany;
 use Ramsey\Uuid\Uuid;
 use function sprintf;
 

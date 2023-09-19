@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use IteratorAggregate;
-use Jenssegers\Mongodb\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\EmbedsMany;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use function abort;

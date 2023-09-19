@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile
       args:
-        PHP_VERSION: 7.4
+        PHP_VERSION: 8.2
     image: laravel-tools/php
     container_name: laravel-tools_php
     networks:

@@ -1,6 +1,6 @@
 <?php
 
-namespace Jenssegers\Mongodb\Eloquent;
+namespace MongoDB\Laravel\Eloquent;
 
 /**
  * @ref: https://github.com/nunomaduro/larastan/blob/19866e06d5846f8c17460ce1c1808da8166d3747/UPGRADE.md#upgrading-to-051-from-050

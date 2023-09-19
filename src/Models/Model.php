@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
-use Jenssegers\Mongodb\Eloquent\Model as OdmModel;
-use Jenssegers\Mongodb\Schema\Blueprint;
+use MongoDB\Laravel\Eloquent\Model as OdmModel;
+use MongoDB\Laravel\Schema\Blueprint;
 use RuntimeException;
 use function array_filter;
 use function array_flip;
@@ -135,7 +135,7 @@ abstract class Model extends OdmModel
 
     private function recursiveLoadEmbeddedRelations(): void
     {
-        // This should be fixed in \Jenssegers\Mongodb\Eloquent\Model.
+        // This should be fixed in \MongoDB\Laravel\Eloquent\Model.
         // As the data is embedded, all the job is done in memory.
         // Ref: https://github.com/jenssegers/laravel-mongodb/issues/397
 

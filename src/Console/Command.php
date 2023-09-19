@@ -282,23 +282,23 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
     }
 
     /**
-     * Handle an incoming signal.
+     * The method will be called when the application is signaled.
      *
-     * @param int $signal
-     *
-     * @return void
+     * @return int|false The exit code to return or false to continue the normal execution
      */
-    public function handleSignal(int $signal): void
+    public function handleSignal(int $signal): int|false
     {
         $this->error(sprintf('Received shutdown signal %d', $signal));
 
         if ($this->shutdown) { // Twice <Ctrl>+C => Hard kill
             $this->error('Received shutdown signal more than once, exiting now');
 
-            exit(0);
+            return 0; // Exit code
         }
 
         $this->shutdown = true;
+
+        return false; // Continue the normal execution
     }
 
     protected function getTime(): string

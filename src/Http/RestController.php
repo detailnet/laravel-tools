@@ -14,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
-use Jenssegers\Mongodb\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\EmbedsMany;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;

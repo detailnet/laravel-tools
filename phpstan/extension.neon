@@ -1,10 +1,10 @@
 parameters:
   stubFiles:
-    - stubs/Jenssegers/Mongodb/Eloquent/Builder.php
-    - stubs/Jenssegers/Mongodb/Relations/BelongsTo.php
-    - stubs/Jenssegers/Mongodb/Relations/BelongsToMany.php
-    - stubs/Jenssegers/Mongodb/Relations/EmbedsMany.php
-    - stubs/Jenssegers/Mongodb/Relations/EmbedsOne.php
-    - stubs/Jenssegers/Mongodb/Relations/EmbedsOneOrMany.php
-    - stubs/Jenssegers/Mongodb/Relations/HasMany.php
-    - stubs/Jenssegers/Mongodb/Relations/HasOne.php
+    - stubs/Mongodb/Laravel/Eloquent/Builder.php
+    - stubs/Mongodb/Laravel/Relations/BelongsTo.php
+    - stubs/Mongodb/Laravel/Relations/BelongsToMany.php
+    - stubs/Mongodb/Laravel/Relations/EmbedsMany.php
+    - stubs/Mongodb/Laravel/Relations/EmbedsOne.php
+    - stubs/Mongodb/Laravel/Relations/EmbedsOneOrMany.php
+    - stubs/Mongodb/Laravel/Relations/HasMany.php
+    - stubs/Mongodb/Laravel/Relations/HasOne.php

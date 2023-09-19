@@ -3,7 +3,7 @@
 namespace Detail\Laravel\Models;
 
 use Illuminate\Database\Eloquent\Collection;
-use Jenssegers\Mongodb\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\EmbedsMany;
 use RuntimeException;
 use function array_filter;
 use function assert;
