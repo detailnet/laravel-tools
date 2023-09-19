@@ -39,9 +39,7 @@ abstract class RestController extends Controller
 {
     use CollectionQuery, ErrorResponse, ModelLogging;
 
-    public const UUID_V4_PATTERN = '[a-f0-9]{8}\-[a-f0-9]{4}\-4[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}';
-
-    protected const ID_PATTERN = self::UUID_V4_PATTERN;
+    protected const ID_PATTERN = Model::UUID_V4_PATTERN;
     protected const ALLOW_DROP = false; // Additional security: has to be defined as route, but the controller has to explicit allow too
     protected const ALLOW_MULTI = false;
     protected const MULTI_SEPARATOR = ',';

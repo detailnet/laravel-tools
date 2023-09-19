@@ -2,13 +2,13 @@
 
 namespace Detail\Laravel\Models;
 
-use Detail\Laravel\Http\RestController;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Jenssegers\Mongodb\Relations\EmbedsMany;
 use RuntimeException;
+use function array_filter;
 use function array_key_exists;
 use function current;
 use function floor;
@@ -27,13 +27,7 @@ use function sprintf;
  */
 trait SortByDragAndDrop
 {
-    /**
-     * @return string[]
-     */
-    private static function updateSortIndexRule(): array
-    {
-        return ['string', 'regex:/^(?:after|before):' . RestController::UUID_V4_PATTERN . '$/'];
-    }
+    use SortUtils;
 
     private function onSortByDragDropChange(?callable $isWithinDescendants = null): void
     {
@@ -116,46 +110,12 @@ trait SortByDragAndDrop
             throw new RuntimeException('Wrong call of extractSortIndexFromAdjacent method');
         }
 
-        if (preg_match('/^(?<position>after|before):(?<uuid>' . RestController::UUID_V4_PATTERN . ')$/', $this->sort_index,
-                $reference) === false) {
-            throw new RuntimeException('Wrong sorting string');
-        }
+        $newIndex = $this->extractSortIndex(
+            $this->sort_index,
+            $this->fetchIndexes()
+        );
 
-        $indexes = $this->fetchIndexes();
-
-        if (!array_key_exists($reference['uuid'], $indexes)) {
-            throw new RuntimeException(
-                sprintf('Failed to apply sort_index: reference model "%s" not found within adjacent models', $reference['uuid'])
-            );
-        }
-
-        // Check that there is a space before or after the referenced model
-        reset($indexes); // Set internal pointer to first element
-
-        // Move internal pointer to referenced model
-        while (key($indexes) !== $reference['uuid']) {
-            next($indexes);
-        }
-
-        switch ($reference['position']) {
-            case 'before':
-                $max = current($indexes);
-                $min = prev($indexes) ?: 0;
-                break;
-            case 'after':
-                $min = current($indexes);
-                $max = next($indexes) ?: ($min + 2 * self::SORT_INDEX_DEFAULT_DELTA);
-                break;
-            default:
-                throw new RuntimeException(
-                    sprintf('Failed to apply sort_index: position to reference "%s" not supported', $reference['position'])
-                );
-        }
-
-        // Mean value between min and max
-        $newIndex = $min + (integer) floor(($max - $min) / 2);
-
-        if ($newIndex === $min || $newIndex === $max) {
+        if ($newIndex === null) {
             $this->fullReindex();
 
             return $this->extractSortIndexFromAdjacent();
@@ -165,7 +125,7 @@ trait SortByDragAndDrop
     }
 
     /**
-     * @return array<string|int, int>
+     * @return array<string, int>
      */
     private function fetchIndexes(): array
     {
@@ -179,7 +139,7 @@ trait SortByDragAndDrop
                         throw new RuntimeException('Some sort_index are not numeric');
                     }
 
-                    $indexes[$model->{$key}] = $model->sort_index;
+                    $indexes[(string) $model->{$key}] = $model->sort_index;
                 }
             }
         );
@@ -199,12 +159,12 @@ trait SortByDragAndDrop
         $index = 0;
 
         // We need to retrieve filed sorted by sort_index and update that sort index, the operation is done by chunks of results
-        // there fore need sot be aware of what has been already updated. The solution is use 'chunkById';
+        // therefore needs to be aware of what has been already updated. The solution is use 'chunkById';
         // Ref: https://laravel.com/docs/8.x/queries#chunking-results
 
-        // But we have decided to go the better way, that might perform a few queries more (less performant), but is safer
-        foreach (array_keys($this->fetchIndexes()) as $key) {
-            $index += self::SORT_INDEX_DEFAULT_DELTA;
+        // But we have decided to go the safer way, that might perform a few queries more (less performant)
+        foreach (array_keys($this->fetchIndexes()) as $key) { // Note: the current model is not re-indexed
+            $index += Model::SORT_INDEX_DEFAULT_DELTA;
 
             $model = self::query()->find($key);
 
@@ -212,7 +172,7 @@ trait SortByDragAndDrop
                 continue;
             }
 
-            // $model->updateQuietly(['sort_index' => $index]); // Doe not works .. don't know why
+            // $model->updateQuietly(['sort_index' => $index]); // Does not works .. don't know why
             $model->sort_index = $index;
             $model->saveQuietly();
         }
@@ -229,6 +189,6 @@ trait SortByDragAndDrop
             return $this->getNextSortIndex();
         }
 
-        return $latest + self::SORT_INDEX_DEFAULT_DELTA;
+        return $latest + Model::SORT_INDEX_DEFAULT_DELTA;
     }
 }
