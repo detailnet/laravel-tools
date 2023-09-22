@@ -39,7 +39,6 @@ abstract class RestController extends Controller
 {
     use CollectionQuery, ErrorResponse, ModelLogging;
 
-    protected const ID_PATTERN = Model::UUID_V4_PATTERN;
     protected const ALLOW_DROP = false; // Additional security: has to be defined as route, but the controller has to explicit allow too
     protected const ALLOW_MULTI = false;
     protected const MULTI_SEPARATOR = ',';
@@ -144,17 +143,24 @@ abstract class RestController extends Controller
 
     protected function isIdValid(string $id): bool
     {
-        $pattern = static::ID_PATTERN;
+        $modelClass = $this->modelClass();
 
-        if (static::ALLOW_MULTI) {
-            if (str_contains($pattern, static::MULTI_SEPARATOR)) {
-                return false; // Should throw an exception
-            }
-
-            $pattern = '(' . static::ID_PATTERN . static::MULTI_SEPARATOR . '){0,' . (static::MULTI_MAX_COUNT - 1) . '}' . $pattern;
+        if (!static::ALLOW_MULTI) {
+            return $modelClass::isValidId($id);
         }
 
-        return preg_match('/^' . $pattern . '$/', $id) === 1;
+        // Should check that the static::MULTI_SEPARATOR is not part of the pattern
+        //if (str_contains($modelClass::ID_PATTERN, static::MULTI_SEPARATOR)) {
+        //    return false; // Should throw an exception
+        //}
+
+        foreach (explode(static::MULTI_SEPARATOR, $id) as $id) {
+            if (!$modelClass::isValidId($id)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected function isMulti(string $id): bool
