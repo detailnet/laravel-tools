@@ -2,6 +2,8 @@
 
 namespace Detail\Laravel\Http\Traits;
 
+use DateTime;
+use DateTimeInterface;
 use Detail\Laravel\Models\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -19,15 +21,23 @@ use function abort;
 use function array_keys;
 use function array_merge;
 use function array_values;
+use function assert;
 use function call_user_func;
 use function count;
 use function ctype_digit;
+use function floatval;
 use function implode;
+use function in_array;
+use function intval;
+use function is_object;
+use function is_scalar;
 use function is_string;
 use function iterator_to_array;
 use function json_decode;
 use function json_last_error_msg;
+use function method_exists;
 use function request;
+use function strval;
 
 /**
  * @phpstan-type FilterItem array{property: string, operator?: string, value: string|int|float|bool|null}
@@ -51,6 +61,16 @@ trait CollectionQuery
         'notexists' => 'notexists',
         'in' => 'in',
         'not in' => 'notin',
+    ];
+
+    /** @var array<string, string[]> */
+    private array $types = [
+        'bool' => ['bool', 'boolean'],
+        'int' => ['int', 'digit', 'integer'],
+        'float' => ['float', 'decimal', 'double', 'real'],
+        'string' => ['str', 'string', 'uuid'],
+        'array' => ['array', 'hash'],
+        'date' => ['date', 'datetime'],
     ];
 
     /**
@@ -89,12 +109,12 @@ trait CollectionQuery
             $operator = $this->operators[$filter['operator'] ?? ''] ?? $filter['operator'] ?? '=';
 
             $model = match ($operator) {
-                'in' => $model->whereIn($filter['property'], $filter['value']),
-                'notin' => $model->whereNotIn($filter['property'], $filter['value']),
+                'in' => $model->whereIn($filter['property'], $this->convertValue($filter['value'], 'array')),
+                'notin' => $model->whereNotIn($filter['property'], $this->convertValue($filter['value'], 'array')),
                 'exists' => $model->whereNotNull($filter['property']),
                 'notexists' => $model->whereNull($filter['property']),
-                'like' => $model->where($filter['property'], 'like', '%' . $filter['value'] . '%'),
-                default => $model->where($filter['property'], $operator, $filter['value']),
+                'like' => $model->where($filter['property'], 'like', '%' . $this->convertValue($filter['value'], 'string') . '%'),
+                default => $model->where($filter['property'], $operator, $this->convertValue($filter['value'], $filter['type'] ?? null)),
             };
         }
 
@@ -270,6 +290,44 @@ trait CollectionQuery
         }
 
         return $pageNumber;
+    }
+
+
+    private function getMainType(string $type): ?string
+    {
+        foreach ($this->types as $mainType => $supportedTypes) {
+            if (in_array($type, $supportedTypes, true)) {
+                return $mainType;
+            }
+        }
+
+        return null;
+    }
+
+    private function convertValue(mixed $value, ?string $type): mixed
+    {
+        switch ($this->getMainType($type ?? '')) {
+            case 'bool':
+                return  (bool) $value;
+            case 'int':
+                assert(is_scalar($value) || $value === null);
+                return  intval($value);
+            case 'float':
+                assert(is_scalar($value) || $value === null);
+                return floatval($value);
+            case 'string':
+                assert(is_scalar($value) || $value === null || (is_object($value) && method_exists($value, '__toString')));
+                return strval($value); /** @phpstan-ignore-line Is safe because object has a to-string method */
+            case 'array':
+                return (array) $value;
+            case 'date':
+                if (!$value instanceof DateTimeInterface) {
+                    assert(is_scalar($value) || $value === null || (is_object($value) && method_exists($value, '__toString')));
+                    return  new DateTime(strval($value)); /** @phpstan-ignore-line Is safe because object has a to-string method */
+                }
+        }
+
+        return $value;
     }
 
     /**
