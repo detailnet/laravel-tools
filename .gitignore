@@ -1,5 +1,5 @@
 .phpcs-cache
-.phpunit.result.cache
+.phpunit.*
 vendor
 composer.lock
 composer.phar
