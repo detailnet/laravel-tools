@@ -107,14 +107,14 @@ trait CollectionQuery
 
         foreach ($this->getFilters($defaultFilters) as $filter) {
             $operator = self::OPERATORS[$filter['operator'] ?? ''] ?? $filter['operator'] ?? '=';
-
+            $property = $filter['property'] === 'id' ? '_id' : $filter['property'];
             $model = match ($operator) {
-                'in' => $model->whereIn($filter['property'], $this->convertValue($filter['value'], 'array')),
-                'notin' => $model->whereNotIn($filter['property'], $this->convertValue($filter['value'], 'array')),
-                'exists' => $model->whereNotNull($filter['property']),
-                'notexists' => $model->whereNull($filter['property']),
-                'like' => $model->where($filter['property'], 'like', '%' . $this->convertValue($filter['value'], 'string') . '%'),
-                default => $model->where($filter['property'], $operator, $this->convertValue($filter['value'], $filter['type'] ?? null)),
+                'in' => $model->whereIn($property, $this->convertValue($filter['value'], 'array')),
+                'notin' => $model->whereNotIn($property, $this->convertValue($filter['value'], 'array')),
+                'exists' => $model->whereNotNull($property),
+                'notexists' => $model->whereNull($property),
+                'like' => $model->where($property, 'like', '%' . $this->convertValue($filter['value'], 'string') . '%'),
+                default => $model->where($property, $operator, $this->convertValue($filter['value'], $filter['type'] ?? null)),
             };
         }
 
