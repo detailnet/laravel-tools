@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Jenssegers\Mongodb\Eloquent\Model as OdmModel;
 use Jenssegers\Mongodb\Schema\Blueprint;
-use RuntimeException;
+use Throwable;
 use function array_filter;
 use function array_flip;
 use function array_intersect_key;
@@ -43,7 +43,7 @@ abstract class Model extends OdmModel
     protected const EMBEDDED_RELATIONS = []; // Method names of relations to be loaded on serialization (toArray)
     protected const SERIALIZATION_ORDER = ['id']; // Sorting of properties on serialization (toArray), properties might not exist (no check)
 
-    private const MAX_INDEXES_PER_COLLECTION = 64 - 1; // 64: ref: https://docs.mongodb.com/manual/reference/limits/ ; the -1 because '_id' is always indexed automatically
+    //private const MAX_INDEXES_PER_COLLECTION = 64 - 1; // 64: ref: https://docs.mongodb.com/manual/reference/limits/ ; the -1 because '_id' is always indexed automatically
 
     protected $hidden = ['_id']; // Do not serialize '_id', use 'id' instead
     /** @var string[] */
@@ -169,14 +169,31 @@ abstract class Model extends OdmModel
     {
         $indexes = $this->indexes();
 
-        if (count($indexes) >= self::MAX_INDEXES_PER_COLLECTION) {
-            throw new RuntimeException('Max limit of indexes exceeded for ' . $this->getTable());
-        }
+        //if (count($indexes) >= self::MAX_INDEXES_PER_COLLECTION) {
+        //    throw new RuntimeException('Max limit of indexes exceeded for ' . $this->getTable());
+        //}
 
         foreach ($indexes as $indexFields) {
-            $this->createIndex($indexFields);
+            try {
+                $this->createIndex($indexFields);
 
-            Log::debug(sprintf('Created index for "%s" collection with keys %s', $this->getTable(), json_encode($indexFields)));
+                Log::debug(
+                    sprintf(
+                        'Created index for "%s" collection with keys %s',
+                        $this->getTable(),
+                        json_encode($indexFields)
+                    )
+                );
+            } catch (Throwable $e) {
+                Log::warning(
+                    sprintf(
+                        'Could not create index for "%s" collection with keys %s: %s',
+                        $this->getTable(),
+                        json_encode($indexFields),
+                        $e->getMessage()
+                    )
+                );
+            }
         }
     }
 
