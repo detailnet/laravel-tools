@@ -178,7 +178,7 @@ abstract class RestController extends Controller
             return $this->errorResponse('Empty or corrupt request body');
         }
 
-        $validator = $modelClass::createValidator($params);
+        $validator = $modelClass::createValidator($params, $this->createValidatorOptions());
 
         if ($validator->fails()) {
             return $this->errorResponse($validator);
@@ -360,6 +360,14 @@ abstract class RestController extends Controller
         }
 
         return [$id];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function createValidatorOptions(): array
+    {
+        return [];
     }
 
     /**
