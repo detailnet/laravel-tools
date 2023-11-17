@@ -18,6 +18,7 @@ use function hash_final;
 use function hash_init;
 use function hash_update_stream;
 use function is_resource;
+use function json_encode;
 use function sprintf;
 use function strlen;
 use function strtoupper;
@@ -151,7 +152,11 @@ class Drive
 
             if ($type === 'upload') {
                 $command = 'PutObject';
-                $args['ACL'] = 'public-read'; // @todo Make configurable
+                $args['ACL'] = $this->options['visibility'] ?? 'public-read';
+
+                if (isset($this->options['encryption'])) {
+                    $args['ServerSideEncryption'] = $this->options['encryption'];
+                }
             } else {
                 $command = 'GetObject';
                 $args['ResponseContentDisposition'] = 'attachment';
