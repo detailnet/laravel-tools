@@ -2,6 +2,7 @@
 
 namespace Detail\Laravel\Drive;
 
+use DateTime;
 use DateTimeInterface;
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
@@ -9,6 +10,7 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\FileAttributes;
+use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use function array_merge;
 use function assert;
@@ -19,6 +21,7 @@ use function hash_init;
 use function hash_update_stream;
 use function is_resource;
 use function json_encode;
+use function preg_replace;
 use function sprintf;
 use function strlen;
 use function strtoupper;
@@ -138,11 +141,29 @@ class Drive
 
     public function getUploadUrl(string $path, DateTimeInterface $expire): string
     {
+        /**
+         * @todo Deprecate $this->getSignedUrl and use $this->filesystem->temporaryUploadUrl($path, $expire)
+         *       This should also return the needed headers for $this->getUploadData
+         */
         return $this->getSignedUrl('upload', $path, $expire);
+    }
+
+    public function getDownloadUrl(string $path, DateTimeInterface $expire): string
+    {
+        /**
+         * @todo Deprecate $this->getSignedUrl and use $this->filesystem->temporaryUrl($path, $expire)
+         */
+        return $this->getSignedUrl('download', $path, $expire);
     }
 
     public function getSignedUrl(string $type, string $path, DateTimeInterface $expire): string
     {
+        /**
+         * @todo Deprecate this method in favor of
+         *        - for upload: $this->filesystem->temporaryUploadUrl($path, $expire);
+         *        - for download: $this->filesystem->temporaryUrl($path, $expire);
+         */
+
         if ($this->filesystem instanceof AwsS3V3Adapter) {
             $client = $this->filesystem->getClient();
             $args = [
@@ -152,10 +173,10 @@ class Drive
 
             if ($type === 'upload') {
                 $command = 'PutObject';
-                $args['ACL'] = $this->options['visibility'] ?? 'public-read';
+                $args['ACL'] = $this->getVisibility();
 
-                if (isset($this->options['encryption'])) {
-                    $args['ServerSideEncryption'] = $this->options['encryption'];
+                if ($this->getEncryption() !== null) {
+                    $args['ServerSideEncryption'] = $this->getEncryption();
                 }
             } else {
                 $command = 'GetObject';
@@ -174,9 +195,42 @@ class Drive
         );
     }
 
-    public function getDownloadUrl(string $path, DateTimeInterface $expire): string
+    public function getVisibility(): string
     {
-        return $this->getSignedUrl('download', $path, $expire);
+        return $this->options['visibility'] ?? 'public-read';
+    }
+
+    public function getEncryption(): ?string
+    {
+        return $this->options['encryption'] ?? null;
+    }
+
+    /**
+     * @return array{id: string, name: string, headers: array<string, string>, upload_url: string, expires_on: string}
+     */
+    public function getUploadData(string $file, DateTimeInterface|string|null $expire = null): array
+    {
+        $id = Uuid::uuid4()->toString();
+        $file = $this->sanitizeFilename($file);
+        $expire = $expire ?? $this->options['expire'] ?? '+10 minutes';
+
+        if (!$expire instanceof DateTimeInterface) {
+            $expire = new DateTime($expire);
+        }
+
+        $headers = [];
+
+        if ($this->filesystem instanceof AwsS3V3Adapter && $this->getEncryption() !== null) {
+            $headers['x-amz-server-side-encryption'] = $this->getEncryption();
+        }
+
+        return [
+            'id' => $id,
+            'name' => $file,
+            'headers' => $headers,
+            'upload_url' => $this->getUploadUrl(sprintf('%s/%s', $id, $file), $expire),
+            'expires_on' => $expire->format(DATE_ATOM),
+        ];
     }
 
     public function deleteDir(string $id): void
@@ -193,5 +247,11 @@ class Drive
         }
 
         $driver->copy($sourcePath, $destinationPath);
+    }
+
+    private function sanitizeFilename(string $filename): string
+    {
+        // Remove unprintable characters and invalid unicode characters (ref: \League\Flysystem\Util::removeFunkyWhiteSpace)
+        return preg_replace('#\p{C}+#u', '', $filename) ?? '';
     }
 }
