@@ -105,6 +105,14 @@ trait CollectionQuery
             }
         }
 
+        if (($query = $this->getQuery()) !== null
+            && count($properties = $this->querySearchProperties()) > 0
+        ) {
+            foreach ($properties as $property) {
+                $model->orWhere($property, 'like', '%' . $query . '%');
+            }
+        }
+
         foreach ($this->getFilters($defaultFilters) as $filter) {
             $operator = $this->operators[$filter['operator'] ?? ''] ?? $filter['operator'] ?? '=';
             $property = $filter['property'] === 'id' ? '_id' : $filter['property'];
@@ -177,6 +185,14 @@ trait CollectionQuery
             $collectionName => $this->getCollectionData($data, $excludedFields),
             'total_items' => count($data),
         ];
+    }
+
+    protected function getQuery(): ?string
+    {
+        $query = request()->query('query');
+        $query = is_string($query) ? trim($query) : '';
+
+        return strlen($query) > 0 ? $query : null;
     }
 
     /**
@@ -292,6 +308,17 @@ trait CollectionQuery
         return $pageNumber;
     }
 
+    /**
+     * Property names to aggregate (OR condition) for query search (index action only)
+     *
+     * Method to override.
+     *
+     * @return string[]
+     */
+    protected function querySearchProperties(): array
+    {
+        return [];
+    }
 
     private function getMainType(string $type): ?string
     {
@@ -308,10 +335,10 @@ trait CollectionQuery
     {
         switch ($this->getMainType($type ?? '')) {
             case 'bool':
-                return  (bool) $value;
+                return (bool) $value;
             case 'int':
                 assert(is_scalar($value) || $value === null);
-                return  intval($value);
+                return intval($value);
             case 'float':
                 assert(is_scalar($value) || $value === null);
                 return floatval($value);
