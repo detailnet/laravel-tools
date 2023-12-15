@@ -50,7 +50,7 @@ abstract class EmbeddedModelSortableByDragAndDrop extends Model
      *
      * This is a limitation: this model can't be integrated more than once in same parent with different names
      * Could get rid of this using Reflection into $this->getParentRelation(): gathering the
-     * protected parameter Jenssegers\Mongodb\Relations\EmbedsOneOrMany::$localKey value.
+     * protected parameter MongoDB\Laravel\Relations\EmbedsOneOrMany::$localKey value.
      */
     protected static function getParentRelationAttributeName(): string
     {

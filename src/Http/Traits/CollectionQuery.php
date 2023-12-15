@@ -14,7 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use IteratorAggregate;
-use Jenssegers\Mongodb\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\EmbedsMany;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use function abort;
@@ -49,7 +49,7 @@ trait CollectionQuery
     protected $preSerialize = null;
 
     /** @var array<string, string> */
-    private array $operators = [
+    private const OPERATORS = [
         'eq' => '=',
         'gt' => '>',
         'lt' => '<',
@@ -64,7 +64,7 @@ trait CollectionQuery
     ];
 
     /** @var array<string, string[]> */
-    private array $types = [
+    private const TYPES = [
         'bool' => ['bool', 'boolean'],
         'int' => ['int', 'digit', 'integer'],
         'float' => ['float', 'decimal', 'double', 'real'],
@@ -114,7 +114,7 @@ trait CollectionQuery
         }
 
         foreach ($this->getFilters($defaultFilters) as $filter) {
-            $operator = $this->operators[$filter['operator'] ?? ''] ?? $filter['operator'] ?? '=';
+            $operator = self::OPERATORS[$filter['operator'] ?? ''] ?? $filter['operator'] ?? '=';
             $property = $filter['property'] === 'id' ? '_id' : $filter['property'];
             $model = match ($operator) {
                 'in' => $model->whereIn($property, $this->convertValue($filter['value'], 'array')),
@@ -217,7 +217,7 @@ trait CollectionQuery
             $filters,
             [
                 '*.property' => ['required', 'regex:/^[0-9a-z][0-9a-z_.-]*[0-9a-z]$/i'],
-                '*.operator' => ['nullable', Rule::in(array_merge(array_keys($this->operators), array_values($this->operators)))],
+                '*.operator' => ['nullable', Rule::in(array_merge(array_keys(self::OPERATORS), array_values(self::OPERATORS)))],
                 '*.value' => ['nullable'],
             ]
         );
@@ -322,7 +322,7 @@ trait CollectionQuery
 
     private function getMainType(string $type): ?string
     {
-        foreach ($this->types as $mainType => $supportedTypes) {
+        foreach (self::TYPES as $mainType => $supportedTypes) {
             if (in_array($type, $supportedTypes, true)) {
                 return $mainType;
             }

@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
-use Jenssegers\Mongodb\Eloquent\Model as OdmModel;
-use Jenssegers\Mongodb\Schema\Blueprint;
+use MongoDB\Laravel\Eloquent\Model as OdmModel;
+use MongoDB\Laravel\Schema\Blueprint;
 use Throwable;
 use function array_filter;
 use function array_flip;
@@ -18,6 +18,7 @@ use function array_intersect_key;
 use function array_merge;
 use function is_array;
 use function json_encode;
+use function preg_match;
 use function sprintf;
 use function strcmp;
 use function uksort;
@@ -34,9 +35,10 @@ abstract class Model extends OdmModel
     const UPDATED_AT = 'updated_on';
     const DELETED_AT = 'deleted_on';
 
-    public const UUID_V4_PATTERN = '[a-f0-9]{8}\-[a-f0-9]{4}\-4[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}'; // In PHP81 prepend final
+    final public const UUID_V4_PATTERN = '[a-f0-9]{8}\-[a-f0-9]{4}\-4[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}';
+    public const ID_PATTERN = self::UUID_V4_PATTERN;
     public const SORT_INDEX_DEFAULT_DELTA = 10000;
-    protected const SORT_INDEX_BY_DRAG_AND_DROP_RULE = ['string', 'regex:/^(?:after|before):' . self::UUID_V4_PATTERN . '$/'];
+    protected const SORT_INDEX_BY_DRAG_AND_DROP_RULE = ['string', 'regex:/^(?:after|before):' . self::ID_PATTERN . '$/'];
 
     public const RULE_OPTION_MULTI = 'multi';
 
@@ -49,6 +51,11 @@ abstract class Model extends OdmModel
     /** @var string[] */
     protected $appends = ['id']; // Serialize 'id'
     protected $connection = 'mongodb';
+
+    public final static function isValidId(string $id): bool
+    {
+        return preg_match('/^' . static::ID_PATTERN . '$/', $id) === 1;
+    }
 
     /**
      * Validation system for REST client
@@ -135,7 +142,7 @@ abstract class Model extends OdmModel
 
     private function recursiveLoadEmbeddedRelations(): void
     {
-        // This should be fixed in \Jenssegers\Mongodb\Eloquent\Model.
+        // This should be fixed in \MongoDB\Laravel\Eloquent\Model.
         // As the data is embedded, all the job is done in memory.
         // Ref: https://github.com/jenssegers/laravel-mongodb/issues/397
 
