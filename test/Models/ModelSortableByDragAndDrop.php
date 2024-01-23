@@ -4,6 +4,7 @@ namespace DetailTest\Laravel\Models;
 
 use Detail\Laravel\Models\Model;
 use Detail\Laravel\Models\SortByDragAndDrop;
+use Detail\Laravel\Validators\SortIndex;
 
 /**
  * This model exists only to let phpstan analyse the SortByDragAndDrop trait.
@@ -39,7 +40,7 @@ class ModelSortableByDragAndDrop extends Model
     protected static function updateRules(array $options = []): array
     {
         return [
-            'sort_index' => Model::SORT_INDEX_BY_DRAG_AND_DROP_RULE,
+            'sort_index' => SortIndex::DRAG_AND_DROP_RULE,
         ];
     }
     protected function indexes(): array
