@@ -45,7 +45,6 @@ abstract class Model extends OdmModel
     //private const MAX_INDEXES_PER_COLLECTION = 64 - 1; // 64: ref: https://docs.mongodb.com/manual/reference/limits/ ; the -1 because '_id' is always indexed automatically
 
     protected $hidden = ['_id']; // Do not serialize '_id', use 'id' instead
-    /** @var string[] */
     protected $appends = ['id']; // Serialize 'id'
     protected $connection = 'mongodb';
 
