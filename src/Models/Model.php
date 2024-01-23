@@ -36,7 +36,6 @@ abstract class Model extends OdmModel
 
     public const UUID_V4_PATTERN = '[a-f0-9]{8}\-[a-f0-9]{4}\-4[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}'; // In PHP81 prepend final
     public const SORT_INDEX_DEFAULT_DELTA = 10000;
-    protected const SORT_INDEX_BY_DRAG_AND_DROP_RULE = ['string', 'regex:/^(?:after|before):' . self::UUID_V4_PATTERN . '$/'];
 
     public const RULE_OPTION_MULTI = 'multi';
 
@@ -46,7 +45,6 @@ abstract class Model extends OdmModel
     //private const MAX_INDEXES_PER_COLLECTION = 64 - 1; // 64: ref: https://docs.mongodb.com/manual/reference/limits/ ; the -1 because '_id' is always indexed automatically
 
     protected $hidden = ['_id']; // Do not serialize '_id', use 'id' instead
-    /** @var string[] */
     protected $appends = ['id']; // Serialize 'id'
     protected $connection = 'mongodb';
 

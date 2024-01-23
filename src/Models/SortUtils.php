@@ -2,6 +2,7 @@
 
 namespace Detail\Laravel\Models;
 
+use Detail\Laravel\Validators\SortIndex;
 use RuntimeException;
 use function array_key_exists;
 use function asort;
@@ -22,7 +23,7 @@ trait SortUtils
      */
     private function extractSortIndex(string $value, array $indexes, int $delta = Model::SORT_INDEX_DEFAULT_DELTA): ?int
     {
-        if (preg_match('/^(?<position>after|before):(?<uuid>' . Model::UUID_V4_PATTERN . ')$/', $value, $reference) === false) {
+        if (preg_match(SortIndex::DRAG_AND_DROP_POSITION_REGEX, $value, $reference) === false) {
             throw new RuntimeException('Wrong sorting string');
         }
 

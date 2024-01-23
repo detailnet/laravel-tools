@@ -51,7 +51,7 @@ trait SortByDragAndDrop
             }
         }
 
-        if (is_string($this->sort_index)) {
+        if (is_string($this->sort_index)) { // If is already an integer is applied without additional tests or reindex
             $this->sort_index = $this->extractSortIndexFromAdjacent();
         }
     }
