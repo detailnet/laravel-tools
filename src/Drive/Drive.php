@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Storage;
 use League\Flysystem\AwsS3V3\PortableVisibilityConverter;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\Visibility;
+use League\MimeTypeDetection\ExtensionMimeTypeDetector;
+use League\MimeTypeDetection\GeneratedExtensionToMimeTypeMap;
+use League\MimeTypeDetection\OverridingExtensionToMimeTypeMap;
 use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use function array_merge;
@@ -35,6 +38,7 @@ class Drive
     private array $options;
     private Key $processorKey;
     private Filesystem $filesystem;
+    private ExtensionMimeTypeDetector $mimeTypeDetector;
 
     /**
      * @param array<string, string> $options
@@ -60,6 +64,14 @@ class Drive
 
         $this->options = $options;
         $this->filesystem = Storage::build($options);
+        $this->mimeTypeDetector = new ExtensionMimeTypeDetector(
+            new OverridingExtensionToMimeTypeMap(
+                new GeneratedExtensionToMimeTypeMap(),
+                [
+                    'idml' => 'application/vnd.adobe.indesign-idml-package',
+                ]
+            )
+        );
     }
 
     public function getFilesystem(): Filesystem
@@ -216,12 +228,17 @@ class Drive
         $id = Uuid::uuid4()->toString();
         $file = $this->sanitizeFilename($file);
         $expire = $expire ?? $this->options['expire'] ?? '+10 minutes';
+        $mimeType = $this->mimeTypeDetector->detectMimeTypeFromPath($file);
 
         if (!$expire instanceof DateTimeInterface) {
             $expire = new DateTime($expire);
         }
 
         $headers = [];
+
+        if ($mimeType !== null) {
+            $headers['Content-Type'] = $mimeType;
+        }
 
         if ($this->filesystem instanceof AwsS3V3Adapter && $this->getEncryption() !== null) {
             $headers['x-amz-server-side-encryption'] = $this->getEncryption();
