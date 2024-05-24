@@ -34,6 +34,10 @@ use function trim;
 
 class Drive
 {
+    protected const OVERRIDE_MIME_TYPES = [
+        'idml' => 'application/vnd.adobe.indesign-idml-package', // Frequently used but not present in standards
+    ];
+
     /** @var array<string, string> */
     private array $options;
     private Key $processorKey;
@@ -67,9 +71,7 @@ class Drive
         $this->mimeTypeDetector = new ExtensionMimeTypeDetector(
             new OverridingExtensionToMimeTypeMap(
                 new GeneratedExtensionToMimeTypeMap(),
-                [
-                    'idml' => 'application/vnd.adobe.indesign-idml-package',
-                ]
+                self::OVERRIDE_MIME_TYPES
             )
         );
     }
