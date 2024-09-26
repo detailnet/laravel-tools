@@ -102,6 +102,18 @@ abstract class Model extends OdmModel
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function setTable($table)
+    {
+        // Override needed because is not performed by the curent jensegers mongodb model
+        // Wonn't be needed anymore wehen migrating to laravel-mongodb
+        $this->collection = $table;
+
+        return parent::setTable($table);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array
