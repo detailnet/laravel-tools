@@ -17,9 +17,13 @@ use function sprintf;
 
 /**
  * @template TDeclaringModel of Model
+ *
+ * @todo Would this be better as trait instead of class?
  */
 abstract class EmbeddedModel extends Model
 {
+    protected $table = null; // Do not save own collection
+
     /**
      * Get the parent model of the relation.
      *
