@@ -29,7 +29,7 @@ trait ModelLogging
                     'model' => $model instanceof Model ? $model->onlySortedFields() : [], // Sorted fields are those we care about
                     //'model' => $model instanceof Model ? $model->toArray() : []
                 ],
-                'count' // Filter out empty arrays
+                static fn(array $a): bool => count($a) > 0 // Filter out empty arrays
             )
         );
     }
@@ -72,6 +72,6 @@ trait ModelLogging
             $context['previous'][] = $e->getMessage();
         }
 
-        Log::error($message, array_filter($context, 'count')); // Filter out empty arrays
+        Log::error($message, array_filter($context, static fn(array $a): bool => count($a) > 0)); // Filter out empty arrays
     }
 }

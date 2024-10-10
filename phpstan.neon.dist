@@ -10,9 +10,11 @@ parameters:
     - src
     - test
 
-  checkGenericClassInNonGenericObjectType: false
-  checkMissingIterableValueType: false
   treatPhpDocTypesAsCertain: false
+
+  ignoreErrors:
+    -
+        identifier:  missingType.generics
 
 includes:
   - phpstan/extension.neon

@@ -2,6 +2,7 @@
 
 namespace Detail\Laravel\Console;
 
+use Detail\Laravel\Api\UserModel;
 use Detail\Laravel\Models\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -36,6 +37,7 @@ class CreateIndexes extends Command
         $this->info('Create DB indexes ...', log: false);
 
         $models = $this->getModels();
+        $models[] = UserModel::class; // @todo Is there a better way
         $optionModels = $this->option('models') ?? [];
         $removeFirst = (bool) $this->option('renew-all');
 

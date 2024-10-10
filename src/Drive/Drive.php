@@ -9,7 +9,12 @@ use Defuse\Crypto\Key;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\AwsS3V3\PortableVisibilityConverter;
 use League\Flysystem\FileAttributes;
+use League\Flysystem\Visibility;
+use League\MimeTypeDetection\ExtensionMimeTypeDetector;
+use League\MimeTypeDetection\GeneratedExtensionToMimeTypeMap;
+use League\MimeTypeDetection\OverridingExtensionToMimeTypeMap;
 use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use function array_merge;
@@ -29,10 +34,15 @@ use function trim;
 
 class Drive
 {
+    protected const OVERRIDE_MIME_TYPES = [
+        'idml' => 'application/vnd.adobe.indesign-idml-package', // Frequently used but not present in standards
+    ];
+
     /** @var array<string, string> */
     private array $options;
     private Key $processorKey;
     private Filesystem $filesystem;
+    private ExtensionMimeTypeDetector $mimeTypeDetector;
 
     /**
      * @param array<string, string> $options
@@ -58,6 +68,12 @@ class Drive
 
         $this->options = $options;
         $this->filesystem = Storage::build($options);
+        $this->mimeTypeDetector = new ExtensionMimeTypeDetector(
+            new OverridingExtensionToMimeTypeMap(
+                new GeneratedExtensionToMimeTypeMap(),
+                self::OVERRIDE_MIME_TYPES
+            )
+        );
     }
 
     public function getFilesystem(): Filesystem
@@ -165,6 +181,7 @@ class Drive
          */
 
         if ($this->filesystem instanceof AwsS3V3Adapter) {
+            $visibilityConverter = new PortableVisibilityConverter();
             $client = $this->filesystem->getClient();
             $args = [
                 'Bucket' => $this->filesystem->getConfig()['bucket'],
@@ -173,7 +190,7 @@ class Drive
 
             if ($type === 'upload') {
                 $command = 'PutObject';
-                $args['ACL'] = $this->getVisibility();
+                $args['ACL'] = $visibilityConverter->visibilityToAcl($this->getVisibility());
 
                 if ($this->getEncryption() !== null) {
                     $args['ServerSideEncryption'] = $this->getEncryption();
@@ -183,7 +200,7 @@ class Drive
                 $args['ResponseContentDisposition'] = 'attachment';
             }
 
-            return (string) $client->createPresignedRequest($client->getCommand($command, $args), $expire)->getUri();
+            return (string)$client->createPresignedRequest($client->getCommand($command, $args), $expire)->getUri();
         }
 
         throw new RuntimeException(
@@ -197,7 +214,7 @@ class Drive
 
     public function getVisibility(): string
     {
-        return $this->options['visibility'] ?? 'public-read';
+        return $this->options['visibility'] ?? Visibility::PUBLIC;
     }
 
     public function getEncryption(): ?string
@@ -213,12 +230,17 @@ class Drive
         $id = Uuid::uuid4()->toString();
         $file = $this->sanitizeFilename($file);
         $expire = $expire ?? $this->options['expire'] ?? '+10 minutes';
+        $mimeType = $this->mimeTypeDetector->detectMimeTypeFromPath($file);
 
         if (!$expire instanceof DateTimeInterface) {
             $expire = new DateTime($expire);
         }
 
         $headers = [];
+
+        if ($mimeType !== null) {
+            $headers['Content-Type'] = $mimeType;
+        }
 
         if ($this->filesystem instanceof AwsS3V3Adapter && $this->getEncryption() !== null) {
             $headers['x-amz-server-side-encryption'] = $this->getEncryption();
