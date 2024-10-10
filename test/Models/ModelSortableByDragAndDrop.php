@@ -43,6 +43,7 @@ class ModelSortableByDragAndDrop extends Model
             'sort_index' => SortIndex::DRAG_AND_DROP_RULE,
         ];
     }
+
     protected function indexes(): array
     {
         return [

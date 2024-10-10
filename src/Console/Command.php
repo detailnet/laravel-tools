@@ -286,7 +286,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
      *
      * @return int|false The exit code to return or false to continue the normal execution
      */
-    public function handleSignal(int $signal): int|false
+    public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
         $this->error(sprintf('Received shutdown signal %d', $signal));
 

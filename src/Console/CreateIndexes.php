@@ -7,9 +7,8 @@ use Detail\Laravel\Models\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
-use MongoDB\Laravel\Collection;
 use MongoDB\Laravel\Schema\Blueprint;
-use MongoDB\Collection as MongoCollection;
+use MongoDB\Collection;
 use MongoDB\Driver\Cursor;
 use ReflectionClass;
 use stdClass;
@@ -69,16 +68,12 @@ class CreateIndexes extends Command
             if ($removeFirst) {
                 /** @var Cursor $currentIndexes */
                 $currentIndexes = DB::connection('mongodb')->table($collectionName)->raw(
-                    static function (Collection $collection) {
-                        /** @var MongoCollection $collection */
-
-                        return $collection->aggregate( // @phpstan-ignore-line Ignoring at present
-                            [
-                                ['$indexStats' => new stdClass()],
-                            ],
-                            ['allowDiskUse' => true]
-                        );
-                    }
+                    static fn(Collection $collection) => $collection->aggregate(
+                        [
+                            ['$indexStats' => new stdClass()],
+                        ],
+                        ['allowDiskUse' => true]
+                    )
                 );
 
                 Schema::connection('mongodb')

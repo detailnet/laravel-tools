@@ -39,7 +39,7 @@ class UserModel extends Model
         ' ',
     ];
 
-    protected $collection = 'api-users';
+    protected $table = 'api-users';
     protected $primaryKey = 'name';
 
     protected $hidden = [ // This model should never be serialized, but in case make suer the key is not in the output

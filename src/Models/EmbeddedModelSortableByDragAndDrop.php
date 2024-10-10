@@ -7,7 +7,9 @@ use RuntimeException;
 use function call_user_func;
 use function class_basename;
 use function class_uses;
+use function in_array;
 use function is_callable;
+use function sprintf;
 
 /**
  * @property string $id
@@ -26,7 +28,15 @@ abstract class EmbeddedModelSortableByDragAndDrop extends Model
 
     protected function updateSortIndex(): void
     {
-        $parent = $this->getParentRelation()->getParent();
+        $relation = $this->getParentRelation();
+
+        if ($relation === null) {
+            throw new RuntimeException(
+                sprintf('Model is not embedded, invalid use of "%s" class.', SortEmbeddedByDragAndDrop::class)
+            );
+        }
+
+        $parent = $relation->getParent();
         $parentTraits = class_uses($parent); // Should use laravel class_uses_recursive()
         $sorter = [$parent, 'sortEmbeddedModel'];
 

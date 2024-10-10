@@ -11,7 +11,7 @@ use function explode;
 
 class UserModelAllowsResourceTest extends TestCase
 {
-    public function provideModelAndRoutes(): Generator
+    public static function provideModelAndRoutes(): Generator
     {
         $getModel = static function(array $resources, bool $active = true): UserModel {
             $model = new UserModel(); // Can't pass params because no mass assignment are declared
