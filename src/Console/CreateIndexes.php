@@ -12,6 +12,7 @@ use MongoDB\Collection;
 use MongoDB\Driver\Cursor;
 use ReflectionClass;
 use stdClass;
+use Symfony\Component\Finder\SplFileInfo as FileInfo;
 use function array_filter;
 use function array_intersect;
 use function assert;
@@ -21,6 +22,7 @@ use function explode;
 use function implode;
 use function is_array;
 use function is_string;
+use function preg_replace;
 use function sprintf;
 
 class CreateIndexes extends Command
@@ -109,13 +111,10 @@ class CreateIndexes extends Command
     function getModels(): array
     {
         return collect(File::allFiles(base_path('src/Models')))
-            ->map(function ($item) {
-                $path = $item->getRelativePathName();
-
-                return sprintf('\App\Models\%s',
-                    strtr(substr($path, 0, strrpos($path, '.') ?: null), '/', '\\'));
-            })
-            ->filter(function ($class) {
+            ->map(static fn(FileInfo $item): string => sprintf(
+                '\App\Models\%s',
+                strtr(preg_replace('/\.\w+$/', '', $item->getRelativePathName()), '/', '\\'))
+            )->filter(function (string $class): bool {
                 if (class_exists($class)) {
                     $reflection = new ReflectionClass($class);
 
