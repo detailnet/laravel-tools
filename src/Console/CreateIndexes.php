@@ -3,6 +3,7 @@
 namespace Detail\Laravel\Console;
 
 use Detail\Laravel\Api\UserModel;
+use Detail\Laravel\Models\EmbeddedModel;
 use Detail\Laravel\Models\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -108,17 +109,20 @@ class CreateIndexes extends Command
     /**
      * @return class-string[]
      */
-    function getModels(): array
+    protected function getModels(): array
     {
         return collect(File::allFiles(base_path('src/Models')))
             ->map(static fn(FileInfo $item): string => sprintf(
                 '\App\Models\%s',
-                strtr(preg_replace('/\.\w+$/', '', $item->getRelativePathName()), '/', '\\'))
+                strtr(preg_replace('/\.\w+$/', '', $item->getRelativePathName()) ?? '', '/', '\\'))
             )->filter(function (string $class): bool {
                 if (class_exists($class)) {
                     $reflection = new ReflectionClass($class);
 
-                    if ($reflection->isSubclassOf(Model::class) && !$reflection->isAbstract()) {
+                    if ($reflection->isSubclassOf(Model::class)
+                        && !$reflection->isSubclassOf(EmbeddedModel::class)
+                        && !$reflection->isAbstract()
+                    ) {
                         /** @var Model $model */
                         $model = new $class();
 

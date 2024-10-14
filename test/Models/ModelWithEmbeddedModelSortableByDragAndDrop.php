@@ -2,7 +2,7 @@
 
 namespace DetailTest\Laravel\Models;
 
-use Detail\Laravel\Models\Model;
+use Detail\Laravel\Models\EmbeddedModel;
 use Detail\Laravel\Models\SortEmbeddedByDragAndDrop;
 use Illuminate\Database\Eloquent\Collection;
 use InvalidArgumentException;
@@ -17,7 +17,7 @@ use function sprintf;
  *
  * @property Collection<int, Item> $items
  */
-class ModelWithEmbeddedModelSortableByDragAndDrop extends Model
+class ModelWithEmbeddedModelSortableByDragAndDrop extends EmbeddedModel
 {
     use SortEmbeddedByDragAndDrop;
 

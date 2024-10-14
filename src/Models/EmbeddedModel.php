@@ -72,4 +72,14 @@ abstract class EmbeddedModel extends Model
     {
         return Str::snake(Str::plural(class_basename(static::class)));
     }
+
+    final public function ensureIndexes(): void
+    {
+        throw new RuntimeException('Indexes for embedded model must be defined in root parent model');
+    }
+
+    final protected function indexes(): array
+    {
+        throw new RuntimeException('Indexes for embedded model must be defined in root parent model');
+    }
 }
