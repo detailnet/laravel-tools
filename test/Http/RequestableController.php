@@ -1,6 +1,6 @@
 <?php
 
-namespace DetailTest\Laravel\Models;
+namespace DetailTest\Laravel\Http;
 
 use Detail\Laravel\Http\Controller;
 use Detail\Laravel\Http\Traits\Requestable;

@@ -2,15 +2,16 @@
 
 namespace Detail\Laravel\Models;
 
-use GoldSpecDigital\LaravelEloquentUUID\Database\Eloquent\Uuid;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
-use Jenssegers\Mongodb\Eloquent\Model as OdmModel;
-use Jenssegers\Mongodb\Schema\Blueprint;
+use MongoDB\Laravel\Eloquent\Model as OdmModel;
+use MongoDB\Laravel\Schema\Blueprint;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 use function array_filter;
 use function array_flip;
@@ -18,24 +19,35 @@ use function array_intersect_key;
 use function array_merge;
 use function is_array;
 use function json_encode;
+use function preg_match;
 use function sprintf;
 use function strcmp;
 use function uksort;
 
 /**
+ * Adaption of eloquents model for use with Mongodb
+ * @ref https://www.mongodb.com/docs/drivers/php/laravel-mongodb/v5.x/
+ *
  * @mixin Builder
  * @method static Builder query()
  */
 abstract class Model extends OdmModel
 {
-    use Uuid;
+    use HasUuids;
 
     const CREATED_AT = 'created_on';
     const UPDATED_AT = 'updated_on';
     const DELETED_AT = 'deleted_on';
 
-    public const UUID_V4_PATTERN = '[a-f0-9]{8}\-[a-f0-9]{4}\-4[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}'; // In PHP81 prepend final
+    /**
+     * @todo Investigate if $casts are needed
+     * protected $casts = ['created_on' => 'datetime', 'updated_on' => 'datetime',];
+     */
+
+    final public const UUID_V4_PATTERN = '[a-f0-9]{8}\-[a-f0-9]{4}\-4[a-f0-9]{3}\-(8|9|a|b)[a-f0-9]{3}\-[a-f0-9]{12}';  // Pattern similar but not same to Uuid::VALID_PATTERN
+    public const ID_PATTERN = self::UUID_V4_PATTERN;
     public const SORT_INDEX_DEFAULT_DELTA = 10000;
+    //protected const SORT_INDEX_BY_DRAG_AND_DROP_RULE = ['string', 'regex:/^(?:after|before):' . self::ID_PATTERN . '$/'];
 
     public const RULE_OPTION_MULTI = 'multi';
 
@@ -47,6 +59,11 @@ abstract class Model extends OdmModel
     protected $hidden = ['_id']; // Do not serialize '_id', use 'id' instead
     protected $appends = ['id']; // Serialize 'id'
     protected $connection = 'mongodb';
+
+    public final static function isValidId(string $id): bool
+    {
+        return preg_match('/^' . static::ID_PATTERN . '$/', $id) === 1;
+    }
 
     /**
      * Validation system for REST client
@@ -94,23 +111,21 @@ abstract class Model extends OdmModel
     }
 
     /**
+     * Generate a new random UUID for the model
+     *
+     * @ref https://laravel.com/docs/11.x/eloquent#uuid-and-ulid-keys
+     */
+    public function newUniqueId(): string
+    {
+        return (string) Uuid::uuid4();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function onlySortedFields(): array
     {
         return array_intersect_key($this->toArray(), array_flip(static::SERIALIZATION_ORDER));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function setTable($table)
-    {
-        // Override needed because is not performed by the curent jensegers mongodb model
-        // Wonn't be needed anymore wehen migrating to laravel-mongodb
-        $this->collection = $table;
-
-        return parent::setTable($table);
     }
 
     /**
@@ -145,7 +160,7 @@ abstract class Model extends OdmModel
 
     private function recursiveLoadEmbeddedRelations(): void
     {
-        // This should be fixed in \Jenssegers\Mongodb\Eloquent\Model.
+        // This should be fixed in \MongoDB\Laravel\Eloquent\Model.
         // As the data is embedded, all the job is done in memory.
         // Ref: https://github.com/jenssegers/laravel-mongodb/issues/397
 

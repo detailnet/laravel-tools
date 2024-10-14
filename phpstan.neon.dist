@@ -14,9 +14,10 @@ parameters:
 
   ignoreErrors:
     -
-        identifier:  missingType.generics
+      identifier:  missingType.generics
 
+  #reportUnmatchedIgnoredErrors: false
 includes:
   - phpstan/extension.neon
   - vendor/phpstan/phpstan/conf/bleedingEdge.neon
-  - vendor/nunomaduro/larastan/extension.neon
+  - vendor/larastan/larastan/extension.neon

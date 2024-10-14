@@ -3,16 +3,17 @@
 namespace Detail\Laravel\Console;
 
 use Detail\Laravel\Api\UserModel;
+use Detail\Laravel\Models\EmbeddedModel;
 use Detail\Laravel\Models\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
-use Jenssegers\Mongodb\Collection;
-use Jenssegers\Mongodb\Schema\Blueprint;
-use MongoDB\Collection as MongoCollection;
+use MongoDB\Laravel\Schema\Blueprint;
+use MongoDB\Collection;
 use MongoDB\Driver\Cursor;
 use ReflectionClass;
 use stdClass;
+use Symfony\Component\Finder\SplFileInfo as FileInfo;
 use function array_filter;
 use function array_intersect;
 use function assert;
@@ -22,6 +23,7 @@ use function explode;
 use function implode;
 use function is_array;
 use function is_string;
+use function preg_replace;
 use function sprintf;
 
 class CreateIndexes extends Command
@@ -69,16 +71,12 @@ class CreateIndexes extends Command
             if ($removeFirst) {
                 /** @var Cursor $currentIndexes */
                 $currentIndexes = DB::connection('mongodb')->table($collectionName)->raw(
-                    static function (Collection $collection) {
-                        /** @var MongoCollection $collection */
-
-                        return $collection->aggregate( // @phpstan-ignore-line Ignoring at present
-                            [
-                                ['$indexStats' => new stdClass()],
-                            ],
-                            ['allowDiskUse' => true]
-                        );
-                    }
+                    static fn(Collection $collection) => $collection->aggregate(
+                        [
+                            ['$indexStats' => new stdClass()],
+                        ],
+                        ['allowDiskUse' => true]
+                    )
                 );
 
                 Schema::connection('mongodb')
@@ -111,20 +109,20 @@ class CreateIndexes extends Command
     /**
      * @return class-string[]
      */
-    function getModels(): array
+    protected function getModels(): array
     {
         return collect(File::allFiles(base_path('src/Models')))
-            ->map(function ($item) {
-                $path = $item->getRelativePathName();
-
-                return sprintf('\App\Models\%s',
-                    strtr(substr($path, 0, strrpos($path, '.') ?: null), '/', '\\'));
-            })
-            ->filter(function ($class) {
+            ->map(static fn(FileInfo $item): string => sprintf(
+                '\App\Models\%s',
+                strtr(preg_replace('/\.\w+$/', '', $item->getRelativePathName()) ?? '', '/', '\\'))
+            )->filter(function (string $class): bool {
                 if (class_exists($class)) {
                     $reflection = new ReflectionClass($class);
 
-                    if ($reflection->isSubclassOf(Model::class) && !$reflection->isAbstract()) {
+                    if ($reflection->isSubclassOf(Model::class)
+                        && !$reflection->isSubclassOf(EmbeddedModel::class)
+                        && !$reflection->isAbstract()
+                    ) {
                         /** @var Model $model */
                         $model = new $class();
 

@@ -5,7 +5,7 @@ name: laravel-tools
 
 services:
   appserver:
-    type: php:8.0
+    type: php:8.2
     via: cli
     composer_version: 2-latest
     xdebug: "debug,develop" # Or just 1, because we are overwriting the value in our custom php.ini
