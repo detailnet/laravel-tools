@@ -25,29 +25,30 @@
         "sort-packages": true
     },
     "require": {
+        "php": "^8.2",
         "ext-pcntl": "*",
-        "illuminate/support": "^9.0",
-        "illuminate/container": "^9.0",
-        "illuminate/database": "^9.0",
-        "illuminate/events": "^9.0",
-        "goldspecdigital/laravel-eloquent-uuid": "^9.0",
-        "jenssegers/mongodb": "^3.9",
-        "mongodb/mongodb": "^1.15"
+        "illuminate/support": "^11.0",
+        "illuminate/container": "^11.0",
+        "illuminate/database": "^11.0",
+        "illuminate/events": "^11.0",
+        "mongodb/laravel-mongodb": "^5.1",
+        "mongodb/mongodb": "^1.16"
     },
     "require-dev": {
         "ext-mongodb": "*",
-        "aws/aws-sdk-php": "^3.281",
-        "defuse/php-encryption": "^2.3",
+        "aws/aws-sdk-php": "^3.308",
+        "defuse/php-encryption": "^2.4",
         "guzzlehttp/guzzle": "^7.8",
-        "league/flysystem-aws-s3-v3": "^3.13",
-        "nunomaduro/collision": "^6.2",
-        "nunomaduro/larastan": "^2.0",
-        "orchestra/testbench": "^7.0",
-        "phpstan/phpstan": "^1.10",
-        "phpstan/phpstan-strict-rules": "^1.5",
-        "phpspec/prophecy-phpunit": "^2.0",
-        "phpunit/phpunit": "^9.5",
-        "squizlabs/php_codesniffer": "^3.7"
+        "league/flysystem-aws-s3-v3": "^3.28",
+        "nunomaduro/collision": "^8.4",
+        "larastan/larastan": "^2.9",
+        "orchestra/testbench": "^9.5",
+        "phpstan/phpstan": "^1.11",
+        "phpstan/phpstan-strict-rules": "^1.6",
+        "phpspec/prophecy": "dev-master",
+        "phpspec/prophecy-phpunit": "dev-master",
+        "phpunit/phpunit": "^10.3",
+        "squizlabs/php_codesniffer": "^3.10"
     },
     "suggest": {
         "ext-mongodb": "Required to use Detail\\Laravel\\Console\\CreateIndexes",
