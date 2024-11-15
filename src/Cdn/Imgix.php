@@ -11,7 +11,7 @@ use function ltrim;
 use function parse_url;
 use function rtrim;
 
-class Imgix implements CdnInterface
+class Imgix implements ImageCdn
 {
     protected HttpClient $httpClient;
 
@@ -41,7 +41,7 @@ class Imgix implements CdnInterface
         );
     }
 
-    public function purgeImage(Asset $asset): bool
+    public function purgeImage(ImageAsset $asset): bool
     {
         $url = $this->buildImageUrl($asset);
 
@@ -81,7 +81,7 @@ class Imgix implements CdnInterface
         return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
     }
 
-    public function buildImageUrl(Asset $asset): ?string
+    public function buildImageUrl(ImageAsset $asset): ?string
     {
         $previewUrl = $asset->getPreviewUrl(false);
 

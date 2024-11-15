@@ -2,7 +2,7 @@
 
 namespace Detail\Laravel\Cdn;
 
-interface Asset
+interface ImageAsset
 {
     public function getPreviewUrl(
         bool $appendVersion = true, // Append version information to the url (might be used as cache breaker)
