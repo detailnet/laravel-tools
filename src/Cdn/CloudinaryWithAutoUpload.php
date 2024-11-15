@@ -77,13 +77,18 @@ class CloudinaryWithAutoUpload implements StreamCdn
         }
 
         return [
-            'uid' => $id, // using same for this
+            'uid' => $id, // Using same as input for this CDN
             'thumbnail' => $this->getPreviewImageUrl($sourceUrl, '{{offset}}'),
             'playback' => [
                 'hls' => $this->getStreamUrl($sourceUrl, extension: 'm3u8'),
                 'dash' => $this->getStreamUrl($sourceUrl, extension: 'mpd'),
             ],
         ];
+    }
+
+    public function isProcessed(string $uid): bool
+    {
+        return true; // This is an auto updload CDN, therefore is always processed (if no error is raisen on init)
     }
 
     protected function getAutoUploadUrl(string $sourceUrl): ?string

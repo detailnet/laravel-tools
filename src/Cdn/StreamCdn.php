@@ -17,4 +17,9 @@ interface StreamCdn extends CdnInterface
      * @throws RuntimeException
      */
     public function initializeStream(string $id, string $fileName, string $sourceUrl): array;
+
+    /**
+     * @throws RuntimeException
+     */
+    public function isProcessed(string $uid): bool;
 }
