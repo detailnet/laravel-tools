@@ -105,12 +105,15 @@ trait CollectionQuery
             }
         }
 
-        if (($query = $this->getQuery()) !== null
+        if (($queryString = $this->getQuery()) !== null
             && count($properties = $this->querySearchProperties()) > 0
         ) {
-            foreach ($properties as $property) {
-                $model->orWhere($property, 'like', '%' . $query . '%');
-            }
+            // Ref: https://laravel.com/docs/8.x/queries#or-where-clauses
+            $model->where(static function(Builder|Relation $orQuery) use ($properties, $queryString): void {
+                foreach ($properties as $property) {
+                    $orQuery->orWhere($property, 'like', '%' . $queryString . '%');
+                }
+            });
         }
 
         foreach ($this->getFilters($defaultFilters) as $filter) {
