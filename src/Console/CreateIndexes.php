@@ -111,7 +111,7 @@ class CreateIndexes extends Command
      */
     protected function getModels(): array
     {
-        return collect(File::allFiles(base_path('src/Models')))
+        return collect(File::allFiles(base_path('app/Models')))
             ->map(static fn(FileInfo $item): string => sprintf(
                 '\App\Models\%s',
                 strtr(preg_replace('/\.\w+$/', '', $item->getRelativePathName()) ?? '', '/', '\\'))
