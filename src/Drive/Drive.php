@@ -19,6 +19,7 @@ use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use function array_merge;
 use function assert;
+use function config;
 use function env;
 use function get_class;
 use function hash_final;
@@ -28,6 +29,7 @@ use function is_resource;
 use function json_encode;
 use function preg_replace;
 use function sprintf;
+use function storage_path;
 use function strlen;
 use function strtoupper;
 use function trim;
@@ -53,14 +55,14 @@ class Drive
             // Set defaults using env variables that normally are set for Laravel 8 in config/filesystems.php
             $options = array_merge(
                 [
-                    'key' => env('AWS_ACCESS_KEY_ID'),
-                    'secret' => env('AWS_SECRET_ACCESS_KEY'),
-                    'region' => env('AWS_DEFAULT_REGION'),
-                    'bucket' => env('AWS_BUCKET'),
-                    'url' => env('AWS_URL'),
-                    'endpoint' => env('AWS_ENDPOINT'),
-                    'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-                    'root' => env('S3_' . strtoupper($options['id']) . '_PREFIX') ?? '',
+                    'key' => $this->getS3Config('key', 'AWS_ACCESS_KEY_ID'),
+                    'secret' => $this->getS3Config('secret','AWS_SECRET_ACCESS_KEY'),
+                    'region' => $this->getS3Config('region','AWS_DEFAULT_REGION'),
+                    'bucket' => $this->getS3Config('bucket','AWS_BUCKET'),
+                    'url' => $this->getS3Config('url','AWS_URL'),
+                    'endpoint' => $this->getS3Config('endpoint','AWS_ENDPOINT'),
+                    'use_path_style_endpoint' => $this->getS3Config('use_path_style_endpoint','AWS_USE_PATH_STYLE_ENDPOINT', false),
+                    'root' => $this->getS3Config('root','S3_' . strtoupper($options['id']) . '_PREFIX', ''),
                 ],
                 $options
             );
@@ -95,7 +97,9 @@ class Drive
     private function getKey(): Key
     {
         if (!isset($this->processorKey)) {
-            $this->processorKey = Key::loadFromAsciiSafeString(env('PROCESSOR_KEY'));
+            $this->processorKey = Key::loadFromAsciiSafeString(
+                config('services.detail-drive.processor_key', env('PROCESSOR_KEY'))
+            );
         }
 
         return $this->processorKey;
@@ -275,5 +279,10 @@ class Drive
     {
         // Remove unprintable characters and invalid unicode characters (ref: \League\Flysystem\Util::removeFunkyWhiteSpace)
         return preg_replace('#\p{C}+#u', '', $filename) ?? '';
+    }
+
+    private function getS3Config(string $key, string $envFallback, mixed $default = null): mixed
+    {
+        return config('filesystems.disks.s3.' . $key, env($envFallback, $default));
     }
 }
