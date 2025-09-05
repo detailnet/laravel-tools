@@ -32,7 +32,7 @@
         "illuminate/database": "^11.0",
         "illuminate/events": "^11.0",
         "mongodb/laravel-mongodb": "^5.1",
-        "mongodb/mongodb": "^1.16"
+        "mongodb/mongodb": "^1.21 || ^2.0"
     },
     "require-dev": {
         "ext-mongodb": "*",
