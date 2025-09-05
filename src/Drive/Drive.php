@@ -36,6 +36,9 @@ use function trim;
 
 class Drive
 {
+    protected const CONFIG_KEY_S3_DISK = 'filesystems.disks.s3.';
+    protected const CONFIG_KEY_S3_PREFIXES = 'services.detail-drive.s3_prefixes.';
+    protected const CONFIG_KEY_PROCESSOR_KEY = 'services.detail-drive.processor_key';
     protected const OVERRIDE_MIME_TYPES = [
         'idml' => 'application/vnd.adobe.indesign-idml-package', // Frequently used but not present in standards
     ];
@@ -52,19 +55,19 @@ class Drive
     public function __construct(array $options = [])
     {
         if ($options['driver'] === 's3') {
-            // Set defaults using env variables that normally are set for Laravel 8 in config/filesystems.php
+            // Set defaults using laravel config for s3 fileystem disk and fallback to environment variables
             $options = array_merge(
                 [
                     'key' => $this->getS3Config('key', 'AWS_ACCESS_KEY_ID'),
                     'secret' => $this->getS3Config('secret','AWS_SECRET_ACCESS_KEY'),
-                    'region' => $this->getS3Config('region','AWS_DEFAULT_REGION'),
+                    'region' => $this->getS3Config('region','AWS_DEFAULT_REGION', 'eu-west-1'),
                     'bucket' => $this->getS3Config('bucket','AWS_BUCKET'),
                     'url' => $this->getS3Config('url','AWS_URL'),
                     'endpoint' => $this->getS3Config('endpoint','AWS_ENDPOINT'),
                     'use_path_style_endpoint' => $this->getS3Config('use_path_style_endpoint','AWS_USE_PATH_STYLE_ENDPOINT', false),
-                    'root' => $this->getS3Config('root','S3_' . strtoupper($options['id']) . '_PREFIX', ''),
+                    'root' => $this->getS3Prefix($options['id'], ''),
                 ],
-                $options
+                $options // Configured options with same key have precedence
             );
         }
 
@@ -98,7 +101,7 @@ class Drive
     {
         if (!isset($this->processorKey)) {
             $this->processorKey = Key::loadFromAsciiSafeString(
-                config('services.detail-drive.processor_key', env('PROCESSOR_KEY'))
+                config(self::CONFIG_KEY_PROCESSOR_KEY, env('PROCESSOR_KEY'))
             );
         }
 
@@ -283,6 +286,17 @@ class Drive
 
     private function getS3Config(string $key, string $envFallback, mixed $default = null): mixed
     {
-        return config('filesystems.disks.s3.' . $key, env($envFallback, $default));
+        return config(self::CONFIG_KEY_S3_DISK . $key, env($envFallback, $default));
+    }
+
+    private function getS3Prefix(string $driveName, mixed $default = null): mixed
+    {
+        return config(
+            self::CONFIG_KEY_S3_PREFIXES . $driveName,
+            env(
+                'S3_' . strtoupper($driveName) . '_PREFIX',
+                $this->getS3Config('root', $default) // filesystems.disks.s3.root is normally never defined
+            )
+        );
     }
 }
