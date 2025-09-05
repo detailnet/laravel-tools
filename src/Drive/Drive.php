@@ -295,7 +295,7 @@ class Drive
             self::CONFIG_KEY_S3_PREFIXES . $driveName,
             env(
                 'S3_' . strtoupper($driveName) . '_PREFIX',
-                $this->getS3Config('root', $default) // filesystems.disks.s3.root is normally never defined
+                $this->getS3Config('root', 'AWS_DEFAULT_ROOT', $default) // filesystems.disks.s3.root is normally never defined
             )
         );
     }
