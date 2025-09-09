@@ -66,6 +66,7 @@ class Drive
                     'endpoint' => $this->getS3Config('endpoint','AWS_ENDPOINT'),
                     'use_path_style_endpoint' => $this->getS3Config('use_path_style_endpoint','AWS_USE_PATH_STYLE_ENDPOINT', false),
                     'root' => $this->getS3Prefix($options['id'], ''),
+                    'throw' => true, // By default throw errors
                 ],
                 $options // Configured options with same key have precedence
             );
