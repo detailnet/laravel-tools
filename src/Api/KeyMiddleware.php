@@ -21,7 +21,7 @@ class KeyMiddleware
     {
     }
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?Closure $authCallback = null): Response
     {
         $apiKey = $request->header($this->headerAppKey);
 
@@ -51,6 +51,10 @@ class KeyMiddleware
 
         if (!$apiUser->allowsResource($request->method(), $request->path())) {
             return $this->errorResponse('Unauthorized', Response::HTTP_UNAUTHORIZED);
+        }
+
+        if ($authCallback !== null) {
+            $authCallback($apiUser);
         }
 
         return $next($request);
