@@ -214,7 +214,10 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         );
     }
 
-    public function info($string, $verbosity = null, bool $log = true)
+    /**
+     * @param 'v'|'vv'|'vvv'|'quiet'|'normal'|Output::VERBOSITY_*|null $verbosity
+     */
+    public function info($string, $verbosity = null, bool $log = true): void
     {
         if ($log) {
             Log::info($string);
@@ -260,7 +263,10 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         }
     }
 
-    public function error($string, $verbosity = null, bool $log = true)
+    /**
+     * @param 'v'|'vv'|'vvv'|'quiet'|'normal'|Output::VERBOSITY_*|null $verbosity
+     */
+    public function error($string, $verbosity = null, bool $log = true): void
     {
         if ($log) {
             Log::error($string);
@@ -269,7 +275,10 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         parent::error($string, $verbosity);
     }
 
-    public function warn($string, $verbosity = null, bool $log = true)
+    /**
+     * @param 'v'|'vv'|'vvv'|'quiet'|'normal'|Output::VERBOSITY_*|null $verbosity
+     */
+    public function warn($string, $verbosity = null, bool $log = true): void
     {
         if ($log) {
             Log::warning($string);
