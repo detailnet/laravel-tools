@@ -21,6 +21,7 @@ use function array_merge;
 use function assert;
 use function config;
 use function env;
+use function explode;
 use function get_class;
 use function hash_final;
 use function hash_init;
@@ -292,6 +293,8 @@ class Drive
 
     private function getS3Prefix(string $driveName, mixed $default = null): mixed
     {
+        $driveName = explode('-', $driveName)[0];
+
         return config(
             self::CONFIG_KEY_S3_PREFIXES . $driveName,
             env( // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
