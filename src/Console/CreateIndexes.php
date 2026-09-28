@@ -5,12 +5,9 @@ namespace Detail\Laravel\Console;
 use Detail\Laravel\Api\UserModel;
 use Detail\Laravel\Models\EmbeddedModel;
 use Detail\Laravel\Models\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use MongoDB\Laravel\Schema\Blueprint;
-use MongoDB\Collection;
-use MongoDB\Driver\Cursor;
 use ReflectionClass;
 use stdClass;
 use Symfony\Component\Finder\SplFileInfo as FileInfo;
@@ -69,14 +66,9 @@ class CreateIndexes extends Command
             $this->info(sprintf('Processing collection "%s" (%s) ...', $collectionName, $modelClass));
 
             if ($removeFirst) {
-                /** @var Cursor $currentIndexes */
-                $currentIndexes = DB::connection('mongodb')->table($collectionName)->raw(
-                    static fn(Collection $collection) => $collection->aggregate(
-                        [
-                            ['$indexStats' => new stdClass()],
-                        ],
-                        ['allowDiskUse' => true]
-                    )
+                $currentIndexes = $model::aggregatePipelineResult(
+                    [['$indexStats' => new stdClass()]],
+                    ['allowDiskUse' => true]
                 );
 
                 Schema::connection('mongodb')

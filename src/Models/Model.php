@@ -6,9 +6,13 @@ use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
+use MongoDB\Collection as MongoCollection;
+use MongoDB\Driver\Cursor as MongoCursor;
+use MongoDB\Driver\CursorInterface;
 use MongoDB\Laravel\Eloquent\Model as OdmModel;
 use MongoDB\Laravel\Schema\Blueprint;
 use Ramsey\Uuid\Uuid;
@@ -17,6 +21,7 @@ use function array_filter;
 use function array_flip;
 use function array_intersect_key;
 use function array_merge;
+use function collect;
 use function is_array;
 use function json_encode;
 use function preg_match;
@@ -30,6 +35,7 @@ use function uksort;
  *
  * @mixin Builder
  * @method static Builder query()
+ * @phpstan-consistent-constructor
  */
 abstract class Model extends OdmModel
 {
@@ -220,6 +226,23 @@ abstract class Model extends OdmModel
                 );
             }
         }
+    }
+
+    /**
+     * @param mixed[] $pipeline MongoDB raw aggregation pipeline
+     * @param array<string, mixed> $options MongoDB aggregation options
+     */
+    public final static function aggregatePipelineResult(array $pipeline, array $options): BaseCollection
+    {
+        /** @var MongoCursor $result */
+        $result = Schema::connection('mongodb')
+            ->getConnection()
+            ->table((new static)->getTable()) // @phpstan-ignore new.staticInAbstractClassStaticMethod
+            ->raw(
+                static fn(MongoCollection $collection): CursorInterface => $collection->aggregate($pipeline, $options) // @phpstan-ignore argument.type
+            );
+
+        return collect($result->toArray());
     }
 
     /**
