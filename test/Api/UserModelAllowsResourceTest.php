@@ -6,6 +6,7 @@ namespace DetailTest\Laravel\Api;
 
 use Detail\Laravel\Api\UserModel;
 use Generator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use function explode;
 
@@ -172,8 +173,8 @@ class UserModelAllowsResourceTest extends TestCase
     /**
      * @param UserModel $apiUser
      * @param array<string, bool> $resourceTestExpectedResult
-     * @dataProvider provideModelAndRoutes
      */
+    #[DataProvider('provideModelAndRoutes')]
     public function testAllowResource(UserModel $apiUser, array $resourceTestExpectedResult): void
     {
         foreach ($resourceTestExpectedResult as $resource => $expectedResult) {
