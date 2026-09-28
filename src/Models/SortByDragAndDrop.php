@@ -45,7 +45,7 @@ trait SortByDragAndDrop
                 $first = $this->getAdjacentModels()
                         ->orderBy('sort_index')
                         ->first([$this->primaryKey])
-                        ?->getAttributeValue($this->primaryKey) ?? null;
+                        ?->getAttributeValue($this->primaryKey);
 
                 $this->sort_index = $first === null ? self::SORT_INDEX_DEFAULT_DELTA : ('before:' . $first);
             }

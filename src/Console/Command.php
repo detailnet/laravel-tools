@@ -75,7 +75,14 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
         Log::listen(
             function (MessageLogged $message): void {
                 if ($this->outputLog) {
-                    $this->line($message->message, null, $message->level);
+                    $this->line(
+                        $message->message,
+                        null,
+                        match($message->level) {
+                            'debug' => Output::VERBOSITY_DEBUG,
+                            default => Output::VERBOSITY_NORMAL,
+                        }
+                    );
                 }
             }
         );
@@ -178,7 +185,7 @@ abstract class Command extends BaseCommand implements SignalableCommandInterface
                         $i,
                         $e->getTraceAsString()
                     ),
-                    1
+                    Output::VERBOSITY_VERBOSE
                 );
 
                 $e = $e->getPrevious();

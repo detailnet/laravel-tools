@@ -38,7 +38,7 @@ class CreateIndexes extends Command
         $models = $this->getModels();
         $models[] = UserModel::class; // @todo Is there a better way
         $optionModels = $this->option('models') ?? [];
-        $removeFirst = (bool) $this->option('renew-all');
+        $removeFirst = (bool)$this->option('renew-all');
 
         if (is_string($optionModels)) {
             $optionModels = array_filter(explode(',', $optionModels));
@@ -71,21 +71,20 @@ class CreateIndexes extends Command
                     ['allowDiskUse' => true]
                 );
 
-                Schema::connection('mongodb')
-                    ->table(
-                        $collectionName,
-                        function (Blueprint $collection) use ($collectionName, $currentIndexes): void {
-                            foreach ($currentIndexes->toArray() as $index) {
-                                if ($index->name === '_id_') {
-                                    continue; // Index '_id' can't be dropped
-                                }
-
-                                $collection->dropIndex($index->name);
-
-                                $this->info(sprintf('Dropped index "%s.%s"', $collectionName, $index->name));
+                Schema::connection('mongodb')->table(
+                    $collectionName,
+                    function (Blueprint $collection) use ($collectionName, $currentIndexes): void {
+                        foreach ($currentIndexes->toArray() as $index) {
+                            if ($index->name === '_id_') {
+                                continue; // Index '_id' can't be dropped
                             }
+
+                            $collection->dropIndex($index->name);
+
+                            $this->info(sprintf('Dropped index "%s.%s"', $collectionName, $index->name));
                         }
-                    );
+                    }
+                );
             }
 
             $this->outputLog = true;

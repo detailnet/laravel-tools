@@ -102,7 +102,7 @@ class Drive
     {
         if (!isset($this->processorKey)) {
             $this->processorKey = Key::loadFromAsciiSafeString(
-                config(self::CONFIG_KEY_PROCESSOR_KEY, env('PROCESSOR_KEY'))
+                config(self::CONFIG_KEY_PROCESSOR_KEY, env('PROCESSOR_KEY')) // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
             );
         }
 
@@ -287,14 +287,14 @@ class Drive
 
     private function getS3Config(string $key, string $envFallback, mixed $default = null): mixed
     {
-        return config(self::CONFIG_KEY_S3_DISK . $key, env($envFallback, $default));
+        return config(self::CONFIG_KEY_S3_DISK . $key, env($envFallback, $default)); // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
     }
 
     private function getS3Prefix(string $driveName, mixed $default = null): mixed
     {
         return config(
             self::CONFIG_KEY_S3_PREFIXES . $driveName,
-            env(
+            env( // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
                 'S3_' . strtoupper($driveName) . '_PREFIX',
                 $this->getS3Config('root', 'AWS_DEFAULT_ROOT', $default) // filesystems.disks.s3.root is normally never defined
             )

@@ -28,7 +28,7 @@ jobs:
     strategy:
       matrix:
         php:
-          - '8.2'
+          - '8.3'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -70,9 +70,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - { os: ubuntu-latest, php: '8.2', mongodb: '4.4', experimental: false }
-          - { os: ubuntu-latest, php: '8.2', mongodb: '5.0', experimental: false }
-          - { os: ubuntu-latest, php: '8.2', mongodb: '6.0', experimental: false }
+          - { os: ubuntu-latest, php: '8.3', mongodb: '8.0', experimental: false }
     services:
       mongo:
         image: mongo:${{ matrix.mongodb }}

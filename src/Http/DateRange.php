@@ -41,9 +41,9 @@ class DateRange
         }
 
         // Enforce limits
-        foreach ($range as &$value) {
-            $value = $value->isBefore($minDate) ? $minDate : $value;
-            $value = $value->isAfter($maxDate) ? $maxDate : $value;
+        foreach ($range as &$value) { // @phpstan-ignore assign.byRefForeachExpr
+            $value = $value->isBefore($minDate) ? $minDate : $value; // @phpstan-ignore assign.byRefForeachExpr
+            $value = $value->isAfter($maxDate) ? $maxDate : $value; // @phpstan-ignore assign.byRefForeachExpr
         }
 
         // Swap dates if necessary

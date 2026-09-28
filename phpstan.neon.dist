@@ -15,9 +15,11 @@ parameters:
   ignoreErrors:
     -
       identifier:  missingType.generics
+    -
+      path: test/config/database.php
+      identifier: larastan.noEnvCallsOutsideOfConfig
 
   #reportUnmatchedIgnoredErrors: false
 includes:
-  - phpstan/extension.neon
   - vendor/phpstan/phpstan/conf/bleedingEdge.neon
   - vendor/larastan/larastan/extension.neon
